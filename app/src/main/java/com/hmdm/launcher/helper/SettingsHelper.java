@@ -378,4 +378,37 @@ public class SettingsHelper {
     public Set<String> getAllowedClasses() {
         return allowedClasses;
     }
+
+    // Dans SettingsHelper.java, ajouter ces méthodes
+    private static final String PREFERENCES_ADMIN_AUTH_TOKEN = "admin_auth_token";
+    private static final String PREFERENCES_ADMIN_USERNAME = "admin_username";
+
+    public String getAdminAuthToken() {
+        return preferences.getString(PREFERENCES_ADMIN_AUTH_TOKEN, null);
+    }
+
+    public void setAdminAuthToken(String token) {
+        preferences.edit().putString(PREFERENCES_ADMIN_AUTH_TOKEN, token).apply();
+    }
+
+    public String getAdminUsername() {
+        return preferences.getString(PREFERENCES_ADMIN_USERNAME, "Admin");
+    }
+
+    public void setAdminUsername(String username) {
+        preferences.edit().putString(PREFERENCES_ADMIN_USERNAME, username).apply();
+    }
+
+    public void clearAdminAuth() {
+        preferences.edit()
+                .remove(PREFERENCES_ADMIN_AUTH_TOKEN)
+                .remove(PREFERENCES_ADMIN_USERNAME)
+                .apply();
+    }
+
+    public boolean isAdminLoggedIn() {
+        return getAdminAuthToken() != null;
+    }
+
+
 }

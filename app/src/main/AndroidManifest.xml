@@ -1,73 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  ~ Headwind MDM: Open Source Android MDM Software
-  ~ https://h-mdm.com
-  ~
-  ~ Copyright (C) 2019 Headwind Solutions LLC (http://h-sms.com)
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
-
-<!-- -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:sharedUserId="com.hmdm">
 
+    <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
+
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.READ_SMS"/>
-    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS"/>
-    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
-        tools:ignore="ProtectedPermissions"/>
-    <uses-permission android:name="android.permission.GET_TASKS"/>
-    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
-                     tools:ignore="ProtectedPermissions"/>
-    <uses-permission android:name="android.permission.INJECT_EVENTS"
-        tools:ignore="ProtectedPermissions"/>
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
-    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
-    <uses-permission android:name="android.permission.BLUETOOTH" android:required="false" android:maxSdkVersion="30"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:required="false" android:maxSdkVersion="30"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:required="false"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
+    <uses-permission
+        android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission
+        android:name="android.permission.INJECT_EVENTS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30"
+        android:required="false" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30"
+        android:required="false" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        android:required="false" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
-    <uses-permission android:name="com.mediatek.permission.CTA_ENABLE_WIFI"/>
-    <uses-permission android:name="com.mediatek.permission.CTA_ENABLE_BT"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="com.mediatek.permission.CTA_ENABLE_WIFI" />
+    <uses-permission android:name="com.mediatek.permission.CTA_ENABLE_BT" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission"/>
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.REQUEST_PASSWORD_COMPLEXITY" />
-    <uses-permission android:name="android.permission.MASTER_CLEAR"
-        tools:ignore="ProtectedPermissions"/>
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"
-        tools:ignore="ProtectedPermissions"/>
-
+    <uses-permission
+        android:name="android.permission.MASTER_CLEAR"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission
+        android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_AIRPLANE_MODE" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_APPS_CONTROL" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_AUDIO_OUTPUT" />
@@ -86,7 +86,7 @@
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_MOBILE_NETWORK" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_MODIFY_USERS" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_NEARBY_COMMUNICATION" />
-    <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_OVERRIDE_APN" />  <!-- for com.hmdm.apn plugin -->
+    <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_OVERRIDE_APN" /> <!-- for com.hmdm.apn plugin -->
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_PHYSICAL_MEDIA" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_PRINTING" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_RESET_PASSWORD" />
@@ -104,83 +104,102 @@
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_WINDOWS" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_WIPE_DATA" />
 
-    <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
     <uses-feature
-        android:name="android.hardware.telephony" android:required="false" />
+        android:name="android.hardware.telephony"
+        android:required="false" />
 
     <application
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/white_app_name"
-        android:supportsRtl="true"
-        android:requestLegacyExternalStorage="true"
-        android:usesCleartextTraffic="true"
-        android:networkSecurityConfig="@xml/network_security_config"
-        android:theme="@style/AppTheme"
         android:name=".App"
         android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/white_app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
-
+        <activity
+            android:name=".ui.Admin.DeviceListFragment"
+            android:exported="false" />
+        <activity
+            android:name=".ui.Admin.adapter.PakageListAdapder"
+            android:exported="false" />
+        <activity
+            android:name=".ui.Admin.DeviceDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.Admin.adapter.PackageListAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".ui.Admin.WipeDataActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.Admin.AdminMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.Admin.AdminLoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Adminajout"
+            android:exported="false" />
         <activity
             android:name=".ui.MainActivity"
-            android:launchMode="singleInstance"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.app.action.PROVISIONING_SUCCESSFUL"/>
+                <action android:name="android.app.action.PROVISIONING_SUCCESSFUL" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </activity>
-        <activity 
+        <activity
             android:name=".ui.AdminActivity"
-            android:excludeFromRecents="true" 
-            android:exported="false"
-        />
+            android:excludeFromRecents="true"
+            android:exported="false" />
         <activity
             android:name=".ui.AdminModeRequestActivity"
             android:excludeFromRecents="true"
-            android:exported="false"
-            />
-
+            android:exported="false" />
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:exported="false"
             android:screenOrientation="fullSensor"
-            tools:replace="screenOrientation" 
-            android:exported="false"/>
-
+            tools:replace="screenOrientation" />
         <activity
             android:name=".ui.InitialSetupActivity"
-            android:theme="@style/SetupWizardTheme"
+            android:exported="true"
             android:permission="android.permission.BIND_DEVICE_ADMIN"
-            android:exported="true">
+            android:theme="@style/SetupWizardTheme">
             <intent-filter>
                 <action android:name="android.app.action.ADMIN_POLICY_COMPLIANCE" />
-                <category android:name="android.intent.category.DEFAULT"/>
+
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ui.MdmChoiceSetupActivity"
-            android:theme="@style/SetupWizardTheme"
+            android:exported="true"
             android:permission="android.permission.BIND_DEVICE_ADMIN"
-            android:exported="true">
+            android:theme="@style/SetupWizardTheme">
             <intent-filter>
                 <action android:name="android.app.action.GET_PROVISIONING_MODE" />
-                <category android:name="android.intent.category.DEFAULT"/>
+
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ui.ErrorDetailsActivity"
-            android:theme="@style/SetupWizardTheme" 
-            android:exported="false"/>
+            android:exported="false"
+            android:theme="@style/SetupWizardTheme" />
 
         <receiver
-            android:name="com.hmdm.launcher.AdminReceiver"
-            android:label="@string/white_app_name"
+            android:name=".AdminReceiver"
             android:exported="true"
+            android:label="@string/white_app_name"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
             <meta-data
                 android:name="android.app.device_admin"
@@ -191,33 +210,33 @@
                 <action android:name="android.app.action.PROFILE_PROVISIONING_COMPLETE" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name="com.hmdm.launcher.receiver.SimChangedReceiver"
+        <receiver
+            android:name=".receiver.SimChangedReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.SIM_STATE_CHANGED"/>
+                <action android:name="android.intent.action.SIM_STATE_CHANGED" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name="com.hmdm.launcher.receiver.ShutdownReceiver"
+        <receiver
+            android:name=".receiver.ShutdownReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_SHUTDOWN" />
                 <action android:name="android.intent.action.QUICKBOOT_POWEROFF" />
             </intent-filter>
         </receiver>
-
         <receiver
-            android:name="com.hmdm.launcher.receiver.BootReceiver"
-            android:label="BootReceiver"
+            android:name=".receiver.BootReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:label="BootReceiver">
             <intent-filter>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
-                <!--For HTC devices-->
-                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <!-- For HTC devices -->
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
 
@@ -228,22 +247,25 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"/>
+                android:resource="@xml/provider_paths" />
         </provider>
 
-        <service android:name=".pro.service.CheckForegroundApplicationService"
-            android:exported="true"/>
-
-        <service android:name=".service.PluginApiService" android:enabled="true" android:exported="true">
+        <service
+            android:name=".pro.service.CheckForegroundApplicationService"
+            android:exported="true" />
+        <service
+            android:name=".service.PluginApiService"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.hmdm.action.Connect" />
             </intent-filter>
         </service>
-
-        <service android:name=".pro.service.CheckForegroundAppAccessibilityService"
-                 android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-                 android:exported="false"
-                 android:label="@string/white_app_name">
+        <service
+            android:name=".pro.service.CheckForegroundAppAccessibilityService"
+            android:exported="false"
+            android:label="@string/white_app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
@@ -252,28 +274,60 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
-
-        <service android:name="org.eclipse.paho.android.service.MqttService"
-            android:foregroundServiceType="specialUse|systemExempted"
-            android:exported="false">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Push notification service"/>
+        <service
+            android:name="org.eclipse.paho.android.service.MqttService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse|systemExempted">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Push notification service" />
         </service>
-
-        <service android:name=".service.LocationService"
-            android:foregroundServiceType="location"
-            android:exported="false"/>
-
-        <service android:name=".service.StatusControlService"
-            android:exported="false"/>
-
-        <service android:name=".service.PushLongPollingService"
-            android:foregroundServiceType="specialUse|systemExempted"
-            android:exported="false">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Push notification service"/>
+        <service
+            android:name=".service.LocationService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+        <service
+            android:name=".service.StatusControlService"
+            android:exported="false" />
+        <service
+            android:name=".service.PushLongPollingService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse|systemExempted">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Push notification service" />
         </service>
-
     </application>
+    <!-- Ajouter ces activités dans votre AndroidManifest.xml -->
+    <activity
+        android:name=".ui.admin.AdminLoginActivity"
+        android:label="@string/admin_login_title"
+        android:theme="@style/AppTheme.NoActionBar" />
+
+    <activity
+        android:name=".ui.admin.AdminMainActivity"
+        android:label="@string/admin_panel"
+        android:theme="@style/AppTheme.NoActionBar" />
+
+    <activity
+        android:name=".ui.admin.DeviceDetailActivity"
+        android:label="@string/device_info"
+        android:theme="@style/AppTheme.NoActionBar" />
+
+    <activity
+        android:name=".ui.admin.WipeDataActivity"
+        android:label="@string/wipe_data"
+        android:theme="@style/AppTheme.NoActionBar" />
+
+    <activity
+        android:name=".ui.admin.AppManagementActivity"
+        android:label="@string/manage_apps"
+        android:theme="@style/AppTheme.NoActionBar" />
+
+    <activity
+        android:name=".ui.admin.DeviceControlActivity"
+        android:label="@string/control_peripherals"
+        android:theme="@style/AppTheme.NoActionBar" />
+
 
 </manifest>

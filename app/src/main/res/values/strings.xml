@@ -130,6 +130,14 @@
     <string name="work_profile_message">This device will get a managed work profile belonging to your organization. The work profile is separated from your private profile and you may switch between profiles at any time.</string>
     <string name="overlays_not_supported">Unfortunately overlays are not supported by your device.</string>
     <string name="admin_not_supported">Your device has no device administrator option. Click Skip to continue.</string>
+    <string name="admin_logo">logo\n</string>
+    <string name="admin_login_title">login title\n</string>
+    <string name="username">username</string>
+    <string name="login">login</string>
+    <string name="password">password</string>
+    <string name="admin_avatar">adminav</string>
+    <string name="admin_user">adminuser</string>
+    <string name="admin_panel">panel</string>
 
     <string-array name="certificates" translatable="false">
         <!-- If you want to install custom SSL certificates, place them in assets folder
@@ -139,4 +147,73 @@
         -->
         <item>isrg_root_x1.pem</item>
     </string-array>
+    <!-- Admin Login -->
+    <string name="admin_logo">Logo administrateur</string>
+    <string name="admin_login_title">Connexion administrateur</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="password">Mot de passe</string>
+    <string name="login">Se connecter</string>
+
+    <!-- Admin Navigation -->
+    <string name="admin_avatar">Avatar administrateur</string>
+    <string name="admin_user">Administrateur</string>
+    <string name="admin_panel">Panneau d\'administration</string>
+    <string name="navigation_drawer_open">Ouvrir le menu</string>
+    <string name="navigation_drawer_close">Fermer le menu</string>
+    <string name="devices">Appareils</string>
+    <string name="map">Carte</string>
+    <string name="geozones">Zones géographiques</string>
+    <string name="wipe_data">Effacer les données</string>
+    <string name="dashboard">Tableau de bord</string>
+    <string name="account">Compte</string>
+    <string name="logout">Déconnexion</string>
+
+    <!-- Device List -->
+    <string name="no_devices_found">Aucun appareil trouvé</string>
+    <string name="status">Statut :</string>
+    <string name="configuration">Configuration :</string>
+
+    <!-- Device Details -->
+    <string name="device_info">Informations sur l\'appareil</string>
+    <string name="device_number">Numéro :</string>
+    <string name="device_name">Nom :</string>
+    <string name="last_online">Dernière connexion :</string>
+    <string name="device_control">Contrôle de l\'appareil</string>
+    <string name="lock">Verrouiller</string>
+    <string name="unlock">Déverrouiller</string>
+    <string name="reboot">Redémarrer</string>
+    <string name="advanced_actions">Actions avancées</string>
+    <string name="manage_apps">Gérer les applications</string>
+    <string name="control_peripherals">Contrôler les périphériques</string>
+
+    <!-- Wipe Data -->
+    <string name="wipe_data_description">Cette fonctionnalité permet d\'effacer les données d\'un appareil à distance. Veuillez l\'utiliser avec précaution.</string>
+    <string name="select_device">Sélectionner un appareil :</string>
+    <string name="select_wipe_type">Sélectionner le type d\'effacement :</string>
+    <string name="add_packages">Ajouter des packages à effacer :</string>
+    <string name="package_name">Nom du package</string>
+    <string name="add">Ajouter</string>
+    <string name="remove">Supprimer</string>
+    <string name="execute_wipe">Exécuter l\'effacement</string>
+
+    <!-- Wipe Types -->
+    <string-array name="wipe_types">
+        <item>Factory Reset</item>
+        <item>Effacement sélectif</item>
+        <item>Données utilisateur</item>
+    </string-array>
+
+    <string-array name="wipe_type_values">
+        <item>FACTORY_RESET</item>
+        <item>SELECTIVE</item>
+        <item>USER_DATA</item>
+    </string-array>
+
+    <!-- Colors -->
+    <color name="colorOnline">#4CAF50</color>
+    <color name="colorOffline">#F44336</color>
+
+
+
 </resources>
+    <!-- Entrées à ajouter dans res/values/strings.xml -->

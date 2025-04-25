@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Suppression à distance des données"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sélectionner un appareil :"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/device_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Type d'effacement :"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/wipe_type_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+
+        <RadioButton
+            android:id="@+id/radio_factory_reset"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Factory Reset (effacement complet) "
+            android:checked="true" />
+
+        <RadioButton
+            android:id="@+id/radio_selective_wipe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Effacement sélectif (applications spécifiques)" />
+
+        <RadioButton
+            android:id="@+id/radio_user_data_wipe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Effacement des données utilisateur" />
+    </RadioGroup>
+
+    <LinearLayout
+        android:id="@+id/selective_wipe_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Packages à effacer :"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/edit_package_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Nom du package (ex: com.example.app)" />
+
+            <Button
+                android:id="@+id/btn_add_package"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ajouter" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/package_list"
+            android:layout_width="match_parent"
+            android:layout_height="150dp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Annuler"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btn_execute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Exécuter" />
+    </LinearLayout>
+</LinearLayout>

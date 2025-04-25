@@ -50,5 +50,5 @@ sdk.dir=/path/to/sdk
 
 gradlew build
 
-5. Find the resulting APK in the app/build/outputs/apk/release/ directory.
+5. Find the resulting APK in the app/build/outputs/apk/release/directory.
 
