@@ -1,17 +1,19 @@
 package com.hmdm.launcher.json;
 
-import static android.content.ContentValues.TAG;
-
 import android.content.Context;
 import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Classe pour traiter les commandes d'effacement des données
+ */
 public class WipeDataCommandProcessor {
+    private static final String TAG = "WipeDataCmd";
+
+    // Types d'effacement
     public static final String TYPE_FACTORY_RESET = "FACTORY_RESET";
     public static final String TYPE_SELECTIVE = "SELECTIVE";
     public static final String TYPE_USER_DATA = "USER_DATA";
@@ -19,10 +21,11 @@ public class WipeDataCommandProcessor {
     private Context context;
     private WipeDataExecutor wipeDataExecutor;
 
-    public WipeDataCommandProcessor(Context context, WipeDataExecutor wipeDataExecutor) {
+    public WipeDataCommandProcessor(Context context) {
         this.context = context;
-        this.wipeDataExecutor = wipeDataExecutor;
+        this.wipeDataExecutor = new WipeDataExecutor(context);
     }
+
     /**
      * Traite une commande d'effacement des données
      * @param commandJson La commande JSON reçue

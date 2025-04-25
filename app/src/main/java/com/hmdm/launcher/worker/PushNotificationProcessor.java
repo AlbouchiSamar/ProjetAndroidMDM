@@ -19,6 +19,8 @@
 
 package com.hmdm.launcher.worker;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -39,6 +41,7 @@ import com.hmdm.launcher.json.Application;
 import com.hmdm.launcher.json.Download;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.ServerConfig;
+import com.hmdm.launcher.json.WipeDataCommandProcessor;
 import com.hmdm.launcher.util.InstallUtils;
 import com.hmdm.launcher.util.RemoteLogger;
 import com.hmdm.launcher.util.SystemUtils;
@@ -381,4 +384,7 @@ public class PushNotificationProcessor {
                     config.getAppPermissions(), false);
         }
     }
+
+
+
 }
