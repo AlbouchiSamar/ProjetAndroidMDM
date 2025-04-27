@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
-import com.hmdm.launcher.json.WipeDataCommandProcessor;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.ui.Admin.adapter.PackageListAdapter;
 
