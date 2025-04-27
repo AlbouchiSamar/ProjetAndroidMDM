@@ -4,17 +4,19 @@ import android.app.ActivityManager;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
 import com.hmdm.launcher.AdminReceiver;
+import com.hmdm.launcher.helper.SettingsHelper;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.List;
 
+/**
+ * Classe pour exécuter les opérations d'effacement des données
+ */
 public class WipeDataExecutor {
     private static final String TAG = "WipeDataExec";
 
@@ -35,10 +37,7 @@ public class WipeDataExecutor {
     public boolean performFactoryReset() {
         try {
             if (dpm.isAdminActive(adminComponent)) {
-                // Journaliser l'action avant de l'exécuter
                 Log.i(TAG, "Exécution d'un factory reset");
-
-                // Effectuer le factory reset
                 dpm.wipeData(0);
                 return true;
             } else {
@@ -63,35 +62,14 @@ public class WipeDataExecutor {
             try {
                 Log.i(TAG, "Effacement des données pour le package: " + packageName);
 
-                // Effacer les données de l'application
-                ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    // Pour Android 9.0 (API 28) et supérieur
-                    am.clearApplicationUserData(packageName, null);
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    // Pour Android 4.4 à 8.1
-                    am.clearApplicationUserData(packageName);
+                // Effacer les données de l'application via commande shell
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    success &= clearApplicationData(packageName);
                 }
 
                 // Utiliser DevicePolicyManager pour des opérations supplémentaires si disponible
                 if (dpm.isAdminActive(adminComponent) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     dpm.clearPackagePersistentPreferredActivities(adminComponent, packageName);
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        // Effacer le cache de l'application (Android 9.0+)
-                        dpm.clearPackageCache(adminComponent, packageName);
-                    } else {
-                        // Pour les versions antérieures, utiliser une alternative
-                        try {
-                            // Utiliser la méthode de nettoyage du cache via PackageManager
-                            Method clearCacheMethod = PackageManager.class.getMethod("deleteApplicationCacheFiles",String.class, IPackageDataObserver.class);
-                            clearCacheMethod.invoke(context.getPackageManager(), packageName, null);
-                            Log.i(TAG, "Cache nettoyé pour " + packageName + " via reflection");
-                        } catch (Exception e) {
-                            Log.e(TAG, "Impossible de nettoyer le cache pour " + packageName, e);
-                            // Continuer malgré l'erreur
-                        }
-                    }
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Erreur lors de l'effacement des données pour le package: " + packageName, e);
@@ -102,6 +80,28 @@ public class WipeDataExecutor {
         return success;
     }
 
+    /**
+     * Efface les données d'une application via commande shell
+     * @param packageName Nom du package
+     * @return true si l'opération a réussi
+     */
+    private boolean clearApplicationData(String packageName) {
+        try {
+            // Exécuter la commande shell "pm clear" pour effacer les données de l'application
+            Process process = Runtime.getRuntime().exec("pm clear " + packageName);
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                Log.i(TAG, "Données effacées avec succès pour le package: " + packageName);
+                return true;
+            } else {
+                Log.e(TAG, "Échec de l'effacement des données pour le package: " + packageName);
+                return false;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de l'exécution de la commande pm clear pour " + packageName + ": " + e.getMessage(), e);
+            return false;
+        }
+    }
 
     /**
      * Effectue un effacement des données utilisateur
@@ -218,5 +218,4 @@ public class WipeDataExecutor {
 
         return success;
     }
-
 }

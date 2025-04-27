@@ -139,4 +139,12 @@ public class AdminReceiver extends DeviceAdminReceiver {
             PreferenceLogger.printStackTrace(preferences, e);
         }
     }
+    public void handleWipeData(Context context, String wipeType) {
+        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences(
+                Const.PREFERENCES, MODE_PRIVATE);
+        PreferenceLogger.log(preferences, "Effacement des données effectué: " + wipeType);
+
+        // Vous pouvez ajouter ici une logique supplémentaire si nécessaire
+    }
+
 }

@@ -1,5 +1,7 @@
 package com.hmdm.launcher.service;
 
+import static android.content.ContentValues.TAG;
+
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -23,6 +25,7 @@ import com.hmdm.launcher.helper.CryptoHelper;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.PushMessage;
 import com.hmdm.launcher.json.PushResponse;
+import com.hmdm.launcher.json.WipeDataCommandProcessor;
 import com.hmdm.launcher.pro.ProUtils;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceKeeper;
@@ -31,6 +34,7 @@ import com.hmdm.launcher.util.Utils;
 import com.hmdm.launcher.worker.PushNotificationProcessor;
 
 import org.eclipse.paho.android.service.MqttService;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -206,6 +210,7 @@ public class PushLongPollingService extends Service {
 
         Utils.startStableForegroundService(this, NOTIFICATION_ID, notification);
     }
+
 
     @Override
     public IBinder onBind(Intent intent) {

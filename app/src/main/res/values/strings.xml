@@ -130,7 +130,7 @@
     <string name="work_profile_message">This device will get a managed work profile belonging to your organization. The work profile is separated from your private profile and you may switch between profiles at any time.</string>
     <string name="overlays_not_supported">Unfortunately overlays are not supported by your device.</string>
     <string name="admin_not_supported">Your device has no device administrator option. Click Skip to continue.</string>
-    <string name="admin_logo">logo\n</string>
+    <string name="admin_logo1">logo\n</string>
     <string name="admin_login_title">login title\n</string>
     <string name="username">username</string>
     <string name="login">login</string>
@@ -148,7 +148,7 @@
         <item>isrg_root_x1.pem</item>
     </string-array>
     <!-- Admin Login -->
-    <string name="admin_logo">Logo administrateur</string>
+    <string name="admin_logo2">Logo administrateur</string>
     <string name="admin_login_title">Connexion administrateur</string>
     <string name="username">Nom d\'utilisateur</string>
     <string name="password">Mot de passe</string>
