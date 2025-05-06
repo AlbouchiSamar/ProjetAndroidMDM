@@ -22,5 +22,7 @@
     <uses-policies>
         <wipe-data />
         <limit-password />
+        <force-lock />
+        <reset-password />
     </uses-policies>
 </device-admin>

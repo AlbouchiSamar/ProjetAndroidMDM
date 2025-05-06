@@ -23,13 +23,18 @@ import static android.app.admin.DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXT
 import static android.content.Context.MODE_PRIVATE;
 
 import android.app.admin.DeviceAdminReceiver;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.PersistableBundle;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKeys;
 
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.DeviceEnrollOptions;
@@ -40,7 +45,8 @@ import com.hmdm.launcher.util.PreferenceLogger;
  */
 
 public class AdminReceiver extends DeviceAdminReceiver {
-
+    private static final String TAG = "AdminReceiver";
+    private static final String PREFS_NAME = "com.hmdm.launcher.prefs";
     @Override
     public void onEnabled(Context context, Intent intent) {
         // We come here after both successful provisioning and manual activation of the device owner
@@ -145,6 +151,40 @@ public class AdminReceiver extends DeviceAdminReceiver {
         PreferenceLogger.log(preferences, "Effacement des données effectué: " + wipeType);
 
         // Vous pouvez ajouter ici une logique supplémentaire si nécessaire
+    }
+        public void onWipeData(Context context, Intent intent) {
+        super.onWipeData(context, intent);
+        try {
+            // Valider l'intent
+            String wipeType = intent.getStringExtra("wipeType");
+            if (wipeType == null || !wipeType.equals("FACTORY_RESET")) {
+                Log.w(TAG, "Type de suppression invalide: " + wipeType);
+                return;
+            }
+
+            // Journaliser de manière sécurisée
+            String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+            SharedPreferences preferences = EncryptedSharedPreferences.create(
+                    PREFS_NAME,
+                    masterKeyAlias,
+                    context.getApplicationContext(),
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+            preferences.edit().putString("last_wipe", "Effacement effectué à " + System.currentTimeMillis()).apply();
+            Log.i(TAG, "Effacement des données déclenché");
+
+            // Exécuter le FACTORY_RESET
+            DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponent = new ComponentName(context, AdminReceiver.class);
+            if (dpm.isDeviceOwnerApp(context.getPackageName())) {
+                dpm.wipeData(0); // 0 pour FACTORY_RESET complet
+            } else {
+                Log.e(TAG, "L'application n'est pas Device Owner");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de l'effacement des données", e);
+        }
     }
 
 }

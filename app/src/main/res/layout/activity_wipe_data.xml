@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Suppression à distance des données"
+        android:text="@string/suppression_distance_des_donn_es"
         android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -17,7 +17,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Sélectionner un appareil :"
+        android:text="@string/s_lectionner_un_appareil"
         android:textStyle="bold" />
 
     <Spinner
@@ -29,7 +29,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Type d'effacement :"
+        android:text="@string/type_d_effacement"
         android:textStyle="bold" />
 
     <RadioGroup
@@ -43,20 +43,20 @@
             android:id="@+id/radio_factory_reset"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Factory Reset (effacement complet) "
+            android:text="@string/factory_reset_effacement_complet"
             android:checked="true" />
 
         <RadioButton
             android:id="@+id/radio_selective_wipe"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Effacement sélectif (applications spécifiques)" />
+            android:text="@string/effacement_s_lectif_applications_sp_cifiques" />
 
         <RadioButton
             android:id="@+id/radio_user_data_wipe"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Effacement des données utilisateur" />
+            android:text="@string/effacement_des_donn_es_utilisateur" />
     </RadioGroup>
 
     <LinearLayout
@@ -69,7 +69,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Packages à effacer :"
+            android:text="@string/packages_effacer"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -82,13 +82,13 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Nom du package (ex: com.example.app)" />
+                android:hint="@string/nom_du_package_ex_com_example_app" />
 
             <Button
                 android:id="@+id/btn_add_package"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ajouter" />
+                android:text="@string/ajouter" />
         </LinearLayout>
 
         <ListView
@@ -103,6 +103,7 @@
         android:layout_weight="1" />
 
     <LinearLayout
+        style="?android:attr/buttonBarStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -110,15 +111,17 @@
 
         <Button
             android:id="@+id/btn_cancel"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Annuler"
+            android:text="@string/annuler"
             android:layout_marginEnd="8dp" />
 
         <Button
             android:id="@+id/btn_execute"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Exécuter" />
+            android:text="@string/ex_cuter" />
     </LinearLayout>
 </LinearLayout>

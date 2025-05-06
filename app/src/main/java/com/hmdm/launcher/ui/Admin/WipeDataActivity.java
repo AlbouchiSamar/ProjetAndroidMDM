@@ -16,7 +16,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.json.WipeDataCommandProcessor;
+import com.hmdm.launcher.server.ServerApi;
 import com.hmdm.launcher.server.ServerService;
+import com.hmdm.launcher.server.ServerServiceImpl;
 import com.hmdm.launcher.ui.Admin.adapter.PackageListAdapter;
 
 import java.util.ArrayList;
@@ -54,7 +57,7 @@ public class WipeDataActivity extends AppCompatActivity {
         setContentView(R.layout.activity_wipe_data);
 
         settingsHelper = SettingsHelper.getInstance(this);
-        serverService = new ServerService(this);
+        serverService = new ServerServiceImpl(this);
 
         initViews();
         setupListeners();

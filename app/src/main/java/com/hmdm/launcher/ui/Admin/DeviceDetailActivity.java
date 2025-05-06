@@ -16,7 +16,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.server.ServerApi;
 import com.hmdm.launcher.server.ServerService;
+import com.hmdm.launcher.server.ServerServiceImpl;
 
 public class DeviceDetailActivity extends AppCompatActivity {
 
@@ -34,14 +36,14 @@ public class DeviceDetailActivity extends AppCompatActivity {
     private String deviceNumber;
     private DeviceListFragment.Device device;
 
-    private ServerService serverService;
+    private ServerApi serverService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_detail);
 
-        serverService = new ServerService(this);
+        serverService = new ServerServiceImpl(this);
 
         // Récupérer le numéro de l'appareil depuis l'intent
         deviceNumber = getIntent().getStringExtra("device_number");

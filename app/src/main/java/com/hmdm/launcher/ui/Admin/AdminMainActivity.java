@@ -82,7 +82,11 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
             loadFragment(new LogsFragment());
         } else if (id == R.id.nav_logout) {
             logout();
+        }else if (id == R.id.nav_add_device) {
+            Intent intent = new Intent(this, AddDeviceActivity.class);
+            startActivity(intent);
         }
+
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;

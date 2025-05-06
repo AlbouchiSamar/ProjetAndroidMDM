@@ -11,7 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.server.ServerApi;
 import com.hmdm.launcher.server.ServerService;
+import com.hmdm.launcher.server.ServerServiceImpl;
 
 public class AdminLoginActivity extends AppCompatActivity {
 
@@ -20,7 +22,7 @@ public class AdminLoginActivity extends AppCompatActivity {
     private Button loginButton;
     private ProgressBar progressBar;
 
-    private ServerService serverService;
+    private ServerApi serverService;
     private SettingsHelper settingsHelper;
 
     @Override
@@ -29,7 +31,7 @@ public class AdminLoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin_login);
 
         settingsHelper = SettingsHelper.getInstance(this);
-        serverService = new ServerService(this);
+        serverService = new ServerServiceImpl(this);
 
         initViews();
         setupListeners();
@@ -59,7 +61,7 @@ public class AdminLoginActivity extends AppCompatActivity {
     private void attemptLogin(String username, String password) {
         showProgress(true);
 
-        serverService.AdminLogin(username, password, token -> {
+        serverService.adminLogin(username, password, token -> {
             // Stocker le token d'authentification
             settingsHelper.setAdminAuthToken(token);
 

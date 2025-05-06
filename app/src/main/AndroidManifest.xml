@@ -120,16 +120,10 @@
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".ui.Admin.DeviceListFragment"
-            android:exported="false" />
-        <activity
-            android:name=".ui.Admin.adapter.PakageListAdapder"
+            android:name=".ui.Admin.AddDeviceActivity"
             android:exported="false" />
         <activity
             android:name=".ui.Admin.DeviceDetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.Admin.adapter.PackageListAdapter"
             android:exported="false" />
         <activity
             android:name=".ui.Admin.WipeDataActivity"
@@ -139,9 +133,6 @@
             android:exported="false" />
         <activity
             android:name=".ui.Admin.AdminLoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Adminajout"
             android:exported="false" />
         <activity
             android:name=".ui.MainActivity"
@@ -208,6 +199,7 @@
             <intent-filter>
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
                 <action android:name="android.app.action.PROFILE_PROVISIONING_COMPLETE" />
+                <action android:name="android.app.action.DEVICE_ADMIN_DISABLED" />
             </intent-filter>
         </receiver>
         <receiver
@@ -298,36 +290,5 @@
                 android:value="Push notification service" />
         </service>
     </application>
-    <!-- Ajouter ces activités dans votre AndroidManifest.xml -->
-    <activity
-        android:name=".ui.admin.AdminLoginActivity"
-        android:label="@string/admin_login_title"
-        android:theme="@style/AppTheme.NoActionBar" />
-
-    <activity
-        android:name=".ui.admin.AdminMainActivity"
-        android:label="@string/admin_panel"
-        android:theme="@style/AppTheme.NoActionBar" />
-
-    <activity
-        android:name=".ui.admin.DeviceDetailActivity"
-        android:label="@string/device_info"
-        android:theme="@style/AppTheme.NoActionBar" />
-
-    <activity
-        android:name=".ui.admin.WipeDataActivity"
-        android:label="@string/wipe_data"
-        android:theme="@style/AppTheme.NoActionBar" />
-
-    <activity
-        android:name=".ui.admin.AppManagementActivity"
-        android:label="@string/manage_apps"
-        android:theme="@style/AppTheme.NoActionBar" />
-
-    <activity
-        android:name=".ui.admin.DeviceControlActivity"
-        android:label="@string/control_peripherals"
-        android:theme="@style/AppTheme.NoActionBar" />
-
 
 </manifest>

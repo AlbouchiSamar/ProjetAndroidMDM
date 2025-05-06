@@ -130,14 +130,14 @@
     <string name="work_profile_message">This device will get a managed work profile belonging to your organization. The work profile is separated from your private profile and you may switch between profiles at any time.</string>
     <string name="overlays_not_supported">Unfortunately overlays are not supported by your device.</string>
     <string name="admin_not_supported">Your device has no device administrator option. Click Skip to continue.</string>
-    <string name="admin_logo1">logo\n</string>
-    <string name="admin_login_title">login title\n</string>
-    <string name="username">username</string>
-    <string name="login">login</string>
-    <string name="password">password</string>
-    <string name="admin_avatar">adminav</string>
-    <string name="admin_user">adminuser</string>
-    <string name="admin_panel">panel</string>
+    <string name="admin_logo" translatable="false">logo\n</string>
+    <string name="admin_login_title" translatable="false">login title\n</string>
+    <string name="username" translatable="false">username</string>
+    <string name="login" translatable="false">login</string>
+    <string name="password" translatable="false">password</string>
+    <string name="admin_avatar" translatable="false">adminav</string>
+    <string name="admin_user" translatable="false">adminuser</string>
+    <string name="admin_panel" translatable="false">panel</string>
 
     <string-array name="certificates" translatable="false">
         <!-- If you want to install custom SSL certificates, place them in assets folder
@@ -148,53 +148,53 @@
         <item>isrg_root_x1.pem</item>
     </string-array>
     <!-- Admin Login -->
-    <string name="admin_logo2">Logo administrateur</string>
-    <string name="admin_login_title">Connexion administrateur</string>
-    <string name="username">Nom d\'utilisateur</string>
-    <string name="password">Mot de passe</string>
-    <string name="login">Se connecter</string>
+    <string name="admin_logo1" translatable="false">Logo administrateur</string>
+    <string name="admin_login_title1" translatable="false">Connexion administrateur</string>
+    <string name="username1" translatable="false">Nom d\'utilisateur</string>
+    <string name="password1" translatable="false">Mot de passe</string>
+    <string name="login1" translatable="false">Se connecter</string>
 
     <!-- Admin Navigation -->
-    <string name="admin_avatar">Avatar administrateur</string>
-    <string name="admin_user">Administrateur</string>
-    <string name="admin_panel">Panneau d\'administration</string>
-    <string name="navigation_drawer_open">Ouvrir le menu</string>
-    <string name="navigation_drawer_close">Fermer le menu</string>
-    <string name="devices">Appareils</string>
-    <string name="map">Carte</string>
-    <string name="geozones">Zones géographiques</string>
-    <string name="wipe_data">Effacer les données</string>
-    <string name="dashboard">Tableau de bord</string>
-    <string name="account">Compte</string>
-    <string name="logout">Déconnexion</string>
+    <string name="admin_avatar1" translatable="false">Avatar administrateur</string>
+    <string name="admin_user1" translatable="false">Administrateur</string>
+    <string name="admin_panel1" translatable="false">Panneau d\'administration</string>
+    <string name="navigation_drawer_open" translatable="false">Ouvrir le menu</string>
+    <string name="navigation_drawer_close" translatable="false">Fermer le menu</string>
+    <string name="devices" translatable="false">Appareils</string>
+    <string name="map" translatable="false">Carte</string>
+    <string name="geozones" translatable="false">Zones géographiques</string>
+    <string name="wipe_data" translatable="false">Effacer les données</string>
+    <string name="dashboard" translatable="false">Tableau de bord</string>
+    <string name="account" translatable="false">Compte</string>
+    <string name="logout" translatable="false">Déconnexion</string>
 
     <!-- Device List -->
-    <string name="no_devices_found">Aucun appareil trouvé</string>
-    <string name="status">Statut :</string>
-    <string name="configuration">Configuration :</string>
+    <string name="no_devices_found" translatable="false">Aucun appareil trouvé</string>
+    <string name="status" translatable="false">Statut :</string>
+    <string name="configuration" translatable="false">Configuration :</string>
 
     <!-- Device Details -->
-    <string name="device_info">Informations sur l\'appareil</string>
-    <string name="device_number">Numéro :</string>
-    <string name="device_name">Nom :</string>
-    <string name="last_online">Dernière connexion :</string>
-    <string name="device_control">Contrôle de l\'appareil</string>
-    <string name="lock">Verrouiller</string>
-    <string name="unlock">Déverrouiller</string>
-    <string name="reboot">Redémarrer</string>
-    <string name="advanced_actions">Actions avancées</string>
-    <string name="manage_apps">Gérer les applications</string>
-    <string name="control_peripherals">Contrôler les périphériques</string>
+    <string name="device_info" translatable="false">Informations sur l\'appareil</string>
+    <string name="device_number" translatable="false">Numéro :</string>
+    <string name="device_name" translatable="false">Nom :</string>
+    <string name="last_online" translatable="false">Dernière connexion :</string>
+    <string name="device_control" translatable="false">Contrôle de l\'appareil</string>
+    <string name="lock" translatable="false">Verrouiller</string>
+    <string name="unlock" translatable="false">Déverrouiller</string>
+    <string name="reboot1" translatable="false">Redémarrer</string>
+    <string name="advanced_actions" translatable="false">Actions avancées</string>
+    <string name="manage_apps" translatable="false">Gérer les applications</string>
+    <string name="control_peripherals" translatable="false">Contrôler les périphériques</string>
 
     <!-- Wipe Data -->
-    <string name="wipe_data_description">Cette fonctionnalité permet d\'effacer les données d\'un appareil à distance. Veuillez l\'utiliser avec précaution.</string>
-    <string name="select_device">Sélectionner un appareil :</string>
-    <string name="select_wipe_type">Sélectionner le type d\'effacement :</string>
-    <string name="add_packages">Ajouter des packages à effacer :</string>
-    <string name="package_name">Nom du package</string>
-    <string name="add">Ajouter</string>
-    <string name="remove">Supprimer</string>
-    <string name="execute_wipe">Exécuter l\'effacement</string>
+    <string name="wipe_data_description" translatable="false">Cette fonctionnalité permet d\'effacer les données d\'un appareil à distance. Veuillez l\'utiliser avec précaution.</string>
+    <string name="select_device" translatable="false">Sélectionner un appareil :</string>
+    <string name="select_wipe_type" translatable="false">Sélectionner le type d\'effacement :</string>
+    <string name="add_packages" translatable="false">Ajouter des packages à effacer :</string>
+    <string name="package_name" translatable="false">Nom du package</string>
+    <string name="add" translatable="false">Ajouter</string>
+    <string name="remove" translatable="false">Supprimer</string>
+    <string name="execute_wipe" translatable="false">Exécuter l\'effacement</string>
 
     <!-- Wipe Types -->
     <string-array name="wipe_types">
@@ -212,8 +212,32 @@
     <!-- Colors -->
     <color name="colorOnline">#4CAF50</color>
     <color name="colorOffline">#F44336</color>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
+    <string name="no_configurations_found" translatable="false">Non configuration trouvee\n</string>
+    <string name="remote_control_title" translatable="false">romote control</string>
+    <string name="device_screen" translatable="false">device screem</string>
+    <string name="refresh" translatable="false">Refrech</string>
+    <string name="send_tap_example" translatable="false">send tap</string>
+    <string name="no_logs_found" translatable="false">"no logo found "</string>
+    <string name="admin_logo2" translatable="false"> Admin logo</string>
+    <string name="suppression_distance_des_donn_es" translatable="false">Suppression à distance des données</string>
+    <string name="s_lectionner_un_appareil" translatable="false">Sélectionner un appareil :</string>
+    <string name="type_d_effacement" translatable="false">Type d\'effacement :</string>
+    <string name="factory_reset_effacement_complet" translatable="false">Factory Reset (effacement complet)</string>
+    <string name="effacement_s_lectif_applications_sp_cifiques" translatable="false">Effacement sélectif (applications spécifiques)</string>
+    <string name="effacement_des_donn_es_utilisateur" translatable="false">Effacement des données utilisateur</string>
+    <string name="packages_effacer" translatable="false">Packages à effacer :</string>
+    <string name="nom_du_package_ex_com_example_app" translatable="false">Nom du package (ex: com.example.app)</string>
+    <string name="ajouter" translatable="false">Ajouter</string>
+    <string name="annuler" translatable="false">Annuler</string>
+    <string name="ex_cuter" translatable="false">Exécuter</string>
+    <string name="logs" translatable="false">logs\n</string>
+    <string name="configurations" translatable="false">Configurations</string>
+    <string name="remote_control" translatable="false">Remote Control</string>
+    <string name="add_device_description">Add devive description</string>
+    <string name="select_configuration">Select configuration</string>
+    <string name="add_device">Add device</string>
 
 
-
-</resources>
-    <!-- Entrées à ajouter dans res/values/strings.xml -->
+</resources><!-- Entrées à ajouter dans res/values/strings.xml -->

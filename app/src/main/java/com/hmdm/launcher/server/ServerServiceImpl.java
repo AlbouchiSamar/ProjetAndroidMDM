@@ -3,6 +3,7 @@ package com.hmdm.launcher.server;
 import android.content.Context;
 import android.util.Log;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
 import com.hmdm.launcher.ui.Admin.WipeDataActivity;
 import okhttp3.*;
@@ -42,7 +43,7 @@ public class ServerServiceImpl implements ServerApi {
 
             Request request = new Request.Builder()
                     .url(url)
-                    .post(RequestBody.create(jsonBody.toString(), JSON))
+                    .post(RequestBody.create(JSON, jsonBody.toString()))
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
@@ -89,7 +90,7 @@ public class ServerServiceImpl implements ServerApi {
             Request request = new Request.Builder()
                     .url(url)
                     .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .post(RequestBody.create(jsonBody.toString(), JSON))
+                    .post(RequestBody.create(JSON, jsonBody.toString()))
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
@@ -191,6 +192,7 @@ public class ServerServiceImpl implements ServerApi {
         }
     }
 
+
     @Override
     public void lockDevice(String deviceNumber, SuccessCallback successCallback, ErrorCallback errorCallback) {
         sendDeviceCommand(deviceNumber, "LOCK", successCallback, errorCallback);
@@ -205,7 +207,117 @@ public class ServerServiceImpl implements ServerApi {
     public void rebootDevice(String deviceNumber, SuccessCallback successCallback, ErrorCallback errorCallback) {
         sendDeviceCommand(deviceNumber, "REBOOT", successCallback, errorCallback);
     }
+    @Override
+    public void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback) {
+        try {
+            String url = settingsHelper.getBaseUrl() + "/rest/private/admin/configurations";
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
+                    .get()
+                    .build();
 
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors de la récupération des configurations", e);
+                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        errorCallback.onError("Session expirée");
+                        return;
+                    }
+                    if (response.isSuccessful()) {
+                        String responseBody = response.body().string();
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            JSONArray items = jsonResponse.getJSONArray("data");
+                            List<ConfigurationListFragment.Configuration> configurations = new ArrayList<>();
+                            for (int i = 0; i < items.length(); i++) {
+                                JSONObject item = items.getJSONObject(i);
+                                ConfigurationListFragment.Configuration config = new ConfigurationListFragment.Configuration(item.getString("id"),item.getString("name"));
+                                configurations.add(config);
+                            }
+                            successCallback.onConfigurationList(configurations);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
+                            errorCallback.onError("Format de réponse invalide");
+                        }
+                    } else {
+                        Log.e(TAG, "Échec de la récupération des configurations: " + response.code());
+                        errorCallback.onError("Erreur serveur: " + response.code());
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
+            errorCallback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void addDevice(JSONObject deviceData, SuccessCallback successCallback, ErrorCallback errorCallback) {
+        try {
+            if (deviceData == null || !deviceData.has("number") || !deviceData.has("name") || !deviceData.has("configurationId")) {
+                errorCallback.onError("Données de l'appareil incomplètes");
+                return;
+            }
+            String deviceNumber = deviceData.getString("number");
+            if (!deviceNumber.matches("[a-zA-Z0-9_-]+")) {
+                errorCallback.onError("Numéro d'appareil invalide");
+                return;
+            }
+            String deviceName = deviceData.getString("name");
+            if (deviceName.length() > 100) {
+                errorCallback.onError("Nom d'appareil trop long");
+                return;
+            }
+
+            String url = settingsHelper.getBaseUrl() + "/rest/public/admin/devices";
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
+                    .post(RequestBody.create(JSON, deviceData.toString()))
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors de l'ajout de l'appareil", e);
+                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        errorCallback.onError("Session expirée");
+                        return;
+                    }
+                    if (response.isSuccessful()) {
+                        successCallback.onSuccess();
+                    } else {
+                        String errorMessage = "Erreur serveur: " + response.code();
+                        if (response.code() == 409) {
+                            errorMessage = "L'appareil existe déjà";
+                        }
+                        if (response.body() != null) {
+                            errorMessage += ", Détails: " + response.body().string();
+                        }
+                        Log.e(TAG, "Échec de l'ajout de l'appareil: " + errorMessage);
+                        errorCallback.onError(errorMessage);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
+            errorCallback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
     private void sendDeviceCommand(String deviceNumber, String command, SuccessCallback successCallback, ErrorCallback errorCallback) {
         try {
             String url = settingsHelper.getBaseUrl() + "/rest/private/devices/" + deviceNumber + "/command";
@@ -216,7 +328,7 @@ public class ServerServiceImpl implements ServerApi {
             Request request = new Request.Builder()
                     .url(url)
                     .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .post(RequestBody.create(jsonBody.toString(), JSON))
+                    .post(RequestBody.create(JSON, jsonBody.toString()))
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
@@ -266,7 +378,7 @@ public class ServerServiceImpl implements ServerApi {
             Request httpRequest = new Request.Builder()
                     .url(url)
                     .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .post(RequestBody.create(jsonBody.toString(), JSON))
+                    .post(RequestBody.create(JSON, jsonBody.toString()))
                     .build();
 
             client.newCall(httpRequest).enqueue(new Callback() {
