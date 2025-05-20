@@ -145,24 +145,16 @@ public class AdminReceiver extends DeviceAdminReceiver {
             PreferenceLogger.printStackTrace(preferences, e);
         }
     }
-    public void handleWipeData(Context context, String wipeType) {
-        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences(
-                Const.PREFERENCES, MODE_PRIVATE);
-        PreferenceLogger.log(preferences, "Effacement des données effectué: " + wipeType);
 
-        // Vous pouvez ajouter ici une logique supplémentaire si nécessaire
-    }
-        public void onWipeData(Context context, Intent intent) {
-        super.onWipeData(context, intent);
+    public void handleWipeData(Context context, String wipeType) {
         try {
-            // Valider l'intent
-            String wipeType = intent.getStringExtra("wipeType");
+            // Validate wipe type
             if (wipeType == null || !wipeType.equals("FACTORY_RESET")) {
-                Log.w(TAG, "Type de suppression invalide: " + wipeType);
+                Log.w(TAG, "Invalid wipe type: " + wipeType);
                 return;
             }
 
-            // Journaliser de manière sécurisée
+            // Secure logging
             String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
             SharedPreferences preferences = EncryptedSharedPreferences.create(
                     PREFS_NAME,
@@ -171,19 +163,21 @@ public class AdminReceiver extends DeviceAdminReceiver {
                     EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             );
-            preferences.edit().putString("last_wipe", "Effacement effectué à " + System.currentTimeMillis()).apply();
-            Log.i(TAG, "Effacement des données déclenché");
+            preferences.edit()
+                    .putString("last_wipe", "Effacement effectué à " + System.currentTimeMillis())
+                    .apply();
+            Log.i(TAG, "Wipe data triggered for type: " + wipeType);
 
-            // Exécuter le FACTORY_RESET
+            // Perform FACTORY_RESET
             DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
             ComponentName adminComponent = new ComponentName(context, AdminReceiver.class);
             if (dpm.isDeviceOwnerApp(context.getPackageName())) {
-                dpm.wipeData(0); // 0 pour FACTORY_RESET complet
+                dpm.wipeData(0); // 0 for full FACTORY_RESET
             } else {
-                Log.e(TAG, "L'application n'est pas Device Owner");
+                Log.e(TAG, "Application is not Device Owner");
             }
         } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de l'effacement des données", e);
+            Log.e(TAG, "Error during wipe data", e);
         }
     }
 

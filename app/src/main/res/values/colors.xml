@@ -31,4 +31,12 @@
 
     <color name="statusBarLight">#aaffffff</color>
     <color name="statusBarDark">#aa000000</color>
+
+    <color name="colorLogError">#87d3e1</color>
+    <color name="colorLogWarn">#87d3e1</color>
+    <color name="colorLogInfo">#87d3e1</color>
+    <color name="colorLogDebug">#87d3e1</color>
+
+
+
 </resources>

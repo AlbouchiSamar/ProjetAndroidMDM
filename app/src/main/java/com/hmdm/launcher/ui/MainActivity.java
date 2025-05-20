@@ -59,6 +59,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -105,6 +106,8 @@ import com.hmdm.launcher.service.PluginApiService;
 import com.hmdm.launcher.service.StatusControlService;
 import com.hmdm.launcher.task.GetServerConfigTask;
 import com.hmdm.launcher.task.SendDeviceInfoTask;
+import com.hmdm.launcher.ui.Admin.AdminLoginActivity;
+import com.hmdm.launcher.ui.Admin.AdminMainActivity;
 import com.hmdm.launcher.ui.custom.StatusBarUpdater;
 import com.hmdm.launcher.util.AppInfo;
 import com.hmdm.launcher.util.CrashLoopProtection;
@@ -316,6 +319,9 @@ public class MainActivity
 
     private boolean firstStartAfterProvisioning = false;
 
+    // Dans l'activité principale de l'application, ajouter un bouton pour accéder au mode administrateur
+    private Button adminButton;
+
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
         super.onCreate( savedInstanceState );
@@ -395,6 +401,25 @@ public class MainActivity
         }
 
         settingsHelper.setMainActivityRunning(true);
+
+
+// Dans la méthode initViews()
+        adminButton = findViewById(R.id.btn_admin);
+
+// Dans la méthode setupListeners()
+        adminButton.setOnClickListener(v -> {
+            SettingsHelper settingsHelper = SettingsHelper.getInstance(this);
+
+            Intent intent1;
+            if (settingsHelper.isAdminLoggedIn()) {
+                // Si déjà connecté, aller directement au tableau de bord admin
+                intent1 = new Intent(this, AdminMainActivity.class);
+            } else {
+                // Sinon, aller à l'écran de connexion
+                intent1 = new Intent(this, AdminLoginActivity.class);
+            }
+            startActivity(intent1);
+        });
     }
 
     // On some Android firmwares, onResume is called before onCreate, so the fields are not initialized
@@ -2527,7 +2552,9 @@ public class MainActivity
     }
 
     @Override
-    public void onBackPressed() {}
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
 
     @Override
     public void onAppChoose( @NonNull AppInfo resolveInfo ) {
@@ -2686,4 +2713,6 @@ public class MainActivity
                 .replace("CUSTOM3", config.getCustom3() != null ? config.getCustom3() : "");
         FileUtils.writeStringToFile(dstFile, content);
     }
+
+
 }

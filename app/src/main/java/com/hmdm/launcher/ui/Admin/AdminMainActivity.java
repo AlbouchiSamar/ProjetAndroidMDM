@@ -37,8 +37,8 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
 
         // Charger le fragment de liste des appareils par défaut
         if (savedInstanceState == null) {
-            loadFragment(new DeviceListFragment());
-            navigationView.setCheckedItem(R.id.nav_devices);
+            loadFragment(new DeviceStatsFragment());
+            navigationView.setCheckedItem(R.id.nav_dashboard);
         }
     }
 
@@ -76,16 +76,19 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
         } else if (id == R.id.nav_wipe_data) {
             Intent intent = new Intent(this, WipeDataActivity.class);
             startActivity(intent);
-        } else if (id == R.id.nav_remote_control) {
+        } else if (id == R.id.nav_dashboard) {
+            loadFragment(new DeviceStatsFragment());
+
+        }else if (id == R.id.nav_remote_control) {
             loadFragment(new RemoteControlFragment());
         } else if (id == R.id.nav_logs) {
             loadFragment(new LogsFragment());
         } else if (id == R.id.nav_logout) {
             logout();
-        }else if (id == R.id.nav_add_device) {
+        }/*else if (id == R.id.nav_add_device) {
             Intent intent = new Intent(this, AddDeviceActivity.class);
             startActivity(intent);
-        }
+        }*/
 
 
         drawerLayout.closeDrawer(GravityCompat.START);

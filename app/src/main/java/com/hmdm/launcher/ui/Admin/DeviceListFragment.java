@@ -120,21 +120,25 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
 
 
     // Classe interne pour représenter un appareil
+    // Classe interne pour représenter un appareil
     public static class Device {
         private String id;
         private String number;
         private String name;
         private String status;
         private String lastOnline;
-        private String configName;
+        private String model;
 
-        public Device(String id, String number, String name, String status, String lastOnline, String configName) {
+        public Device() {
+        }
+
+        public Device(String id, String number, String name, String status, String lastOnline, String model) {
             this.id = id;
             this.number = number;
             this.name = name;
             this.status = status;
             this.lastOnline = lastOnline;
-            this.configName = configName;
+            this.model = model;
         }
 
         public String getId() {
@@ -177,12 +181,13 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
             this.lastOnline = lastOnline;
         }
 
-        public String getConfigName() {
-            return configName;
+        public String getModel() {
+            return model;
         }
 
-        public void setConfigName(String configName) {
-            this.configName = configName;
+        public void setModel(String model) {
+            this.model = model;
         }
     }
+
 }

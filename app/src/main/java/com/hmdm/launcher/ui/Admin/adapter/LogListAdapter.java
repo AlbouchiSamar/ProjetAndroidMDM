@@ -16,9 +16,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class LogListAdapter extends RecyclerView.Adapter<LogListAdapter.LogViewHolder> {
-
-    private List<LogsFragment.LogEntry> logs;
+public class LogListAdapter /* extends RecyclerView.Adapter<LogListAdapter.LogViewHolder>*/ {
+   /* private List<LogsFragment.LogEntry> logs;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault() );
 
     public LogListAdapter(List<LogsFragment.LogEntry> logs) {
@@ -85,5 +84,5 @@ public class LogListAdapter extends RecyclerView.Adapter<LogListAdapter.LogViewH
             }
             levelText.setTextColor(itemView.getContext().getResources().getColor(colorResId));
         }
-    }
+    } */
 }

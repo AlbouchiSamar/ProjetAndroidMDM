@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.server.ServerApi;
 import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceImpl;
 import com.hmdm.launcher.ui.Admin.adapter.ConfigurationSpinnerAdapter;
@@ -28,7 +29,7 @@ public class AddDeviceActivity extends AppCompatActivity {
     private Spinner configurationSpinner;
     private Button addButton;
     private ProgressBar progressBar;
-    private ServerService serverService;
+    private ServerApi serverService;
     private SettingsHelper settingsHelper;
     private List<ConfigurationListFragment.Configuration> configurations = new ArrayList<>();
     private ConfigurationSpinnerAdapter configAdapter;
@@ -41,7 +42,7 @@ public class AddDeviceActivity extends AppCompatActivity {
         settingsHelper = SettingsHelper.getInstance(this);
 
         // Vérifier le token
-        if (settingsHelper.getToken() == null) {
+     /*   if (settingsHelper.getToken() == null) {
             Toast.makeText(this, "Veuillez vous connecter", Toast.LENGTH_LONG).show();
             startActivity(new Intent(this, AdminLoginActivity.class));
             finish();
@@ -171,5 +172,6 @@ public class AddDeviceActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
+    }*/
+}
 }

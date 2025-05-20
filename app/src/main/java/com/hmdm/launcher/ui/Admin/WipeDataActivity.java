@@ -7,6 +7,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -18,9 +19,9 @@ import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.json.WipeDataCommandProcessor;
 import com.hmdm.launcher.server.ServerApi;
-import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceImpl;
 import com.hmdm.launcher.ui.Admin.adapter.PackageListAdapter;
+import com.hmdm.launcher.ui.Admin.DeviceListFragment.Device;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,7 @@ public class WipeDataActivity extends AppCompatActivity {
 
     private ServerApi serverService;
     private SettingsHelper settingsHelper;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +76,7 @@ public class WipeDataActivity extends AppCompatActivity {
         packageListView = findViewById(R.id.package_list);
         addPackageButton = findViewById(R.id.btn_add_package);
         packageNameEdit = findViewById(R.id.edit_package_name);
-
+        progressBar = findViewById(R.id.progress_bar);
         executeButton = findViewById(R.id.btn_execute);
         cancelButton = findViewById(R.id.btn_cancel);
 
@@ -101,6 +103,10 @@ public class WipeDataActivity extends AppCompatActivity {
 
         addPackageButton.setOnClickListener(v -> {
             String packageName = packageNameEdit.getText().toString().trim();
+            if (!packageName.matches("^[a-zA-Z0-9._]+$")) {
+                Toast.makeText(this, "Nom de package invalide", Toast.LENGTH_SHORT).show();
+                return;
+            }
             if (!packageName.isEmpty() && !selectedPackages.contains(packageName)) {
                 selectedPackages.add(packageName);
                 packageListAdapter.notifyDataSetChanged();
@@ -120,7 +126,14 @@ public class WipeDataActivity extends AppCompatActivity {
     private void loadDevices() {
         // Dans une application réelle, vous chargeriez la liste des appareils depuis le serveur
         // Pour cet exemple, nous utilisons des données fictives
+        progressBar.setVisibility(View.VISIBLE);
         serverService.getDevices(devices -> {
+
+            if (devices == null || devices.isEmpty()) {
+                runOnUiThread(() -> Toast.makeText(this, "Aucun appareil trouvé", Toast.LENGTH_LONG).show());
+                return;
+            }
+
             deviceNumbers.clear();
             deviceNames.clear();
 
@@ -130,10 +143,12 @@ public class WipeDataActivity extends AppCompatActivity {
             }
 
             runOnUiThread(() -> {
+                progressBar.setVisibility(View.GONE);
                 deviceAdapter.notifyDataSetChanged();
             });
         }, error -> {
             runOnUiThread(() -> {
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(this, "Erreur lors du chargement des appareils: " + error, Toast.LENGTH_LONG).show();
             });
         });
@@ -203,7 +218,7 @@ public class WipeDataActivity extends AppCompatActivity {
         });
     }
 
-    // Classe interne pour représenter un appareil
+    /*// Classe interne pour représenter un appareil
     private static class Device {
         private String number;
         private String name;
@@ -220,7 +235,7 @@ public class WipeDataActivity extends AppCompatActivity {
         public String getName() {
             return name;
         }
-    }
+    }*/
 
     // Classe interne pour la requête d'effacement
     public static class WipeDataRequest {

@@ -59,6 +59,11 @@ public class AdminLoginActivity extends AppCompatActivity {
     }
 
     private void attemptLogin(String username, String password) {
+        if (username.length() < 3 || password.length() < 5
+        ) {
+            Toast.makeText(this, "Le nom d'utilisateur doit avoir au moins 3 caractères et le mot de passe 6", Toast.LENGTH_SHORT).show();
+            return;
+        }
         showProgress(true);
 
         serverService.adminLogin(username, password, token -> {

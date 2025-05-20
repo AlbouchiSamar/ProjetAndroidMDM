@@ -32,7 +32,7 @@ public class RemoteControlFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_remote_control, container, false);
-
+/*
         serverService = new ServerServiceImpl(requireContext());
 
         // Récupérer le numéro de l'appareil depuis les arguments
@@ -131,5 +131,9 @@ public class RemoteControlFragment extends Fragment {
         args.putString("device_number", deviceNumber);
         fragment.setArguments(args);
         return fragment;
+    }
+    */
+        return view;
+
     }
 }

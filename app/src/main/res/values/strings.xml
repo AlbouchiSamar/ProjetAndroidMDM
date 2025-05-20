@@ -238,6 +238,7 @@
     <string name="add_device_description">Add devive description</string>
     <string name="select_configuration">Select configuration</string>
     <string name="add_device">Add device</string>
+    <string name="Model">Model\n</string>
 
 
 </resources><!-- Entrées à ajouter dans res/values/strings.xml -->

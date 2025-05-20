@@ -32,7 +32,7 @@ public class LogsFragment extends Fragment {
     private TextView emptyView;
 
     private LogListAdapter adapter;
-    private List<LogEntry> logs = new ArrayList<>();
+   // private List<LogEntry> logs = new ArrayList<>();
 
     private ServerApi serverService;
     private String deviceNumber; // À définir lors de la création du fragment
@@ -43,7 +43,7 @@ public class LogsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_logs, container, false);
 
         serverService = new ServerServiceImpl(requireContext());
-
+/*
         // Récupérer le numéro de l'appareil depuis les arguments
         if (getArguments() != null) {
             deviceNumber = getArguments().getString("device_number");
@@ -155,6 +155,8 @@ public class LogsFragment extends Fragment {
 
         public void setMessage(String message) {
             this.message = message;
-        }
+        }*/
+        return view;
+
     }
 }

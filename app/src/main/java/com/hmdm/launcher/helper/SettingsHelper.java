@@ -57,13 +57,16 @@ public class SettingsHelper {
     private static final String PREF_KEY_LAST_APP_UPDATE_STATE = ".helpers.LAST_APP_UPDATE_STATE";
     private static final String PREF_KEY_APP_START_TIME = ".helpers.APP_START_TIME";
     private static final String PREF_KEY_SATELLITE_COUNT = ".helpers.APP_SATELLITE_COUNT";
+    private static final String PREFERENCES_ADMIN_AUTH_TOKEN = "admin_auth_token";
+    private static final String PREFERENCES_ADMIN_USERNAME = "admin_username";
+    private static final String PREFERENCES_CACHED_DEVICES = "cached_devices";
     // This prefix is for the compatibility with a legacy package name
     private static String PACKAGE_NAME;
 
     private SharedPreferences sharedPreferences;
     private ServerConfig config;
     private ServerConfig oldConfig;
-    private Map<String,ApplicationSetting> appSettings = new HashMap<>();
+    private Map<String, ApplicationSetting> appSettings = new HashMap<>();
     private Set<String> allowedClasses = new HashSet<>();
 
     private static SettingsHelper instance;
@@ -72,39 +75,37 @@ public class SettingsHelper {
         if (instance == null) {
             instance = new SettingsHelper(context);
         }
-
         return instance;
     }
 
     public SettingsHelper(Context context) {
         PACKAGE_NAME = context.getPackageName();
-        sharedPreferences = context.getSharedPreferences(PACKAGE_NAME + PREFERENCES_ID, Context.MODE_PRIVATE );
+        sharedPreferences = context.getSharedPreferences(PACKAGE_NAME + PREFERENCES_ID, Context.MODE_PRIVATE);
         initConfig();
     }
 
     public void refreshConfig(Context context) {
         if (config == null) {
-            sharedPreferences = context.getSharedPreferences(PACKAGE_NAME + PREFERENCES_ID, Context.MODE_PRIVATE );
+            sharedPreferences = context.getSharedPreferences(PACKAGE_NAME + PREFERENCES_ID, Context.MODE_PRIVATE);
             initConfig();
         }
     }
 
     private void initConfig() {
         try {
-            if ( sharedPreferences.contains(PACKAGE_NAME + PREF_KEY_CONFIG) ) {
+            if (sharedPreferences.contains(PACKAGE_NAME + PREF_KEY_CONFIG)) {
                 ObjectMapper mapper = new ObjectMapper();
                 config = mapper.readValue(
-                        sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CONFIG, "" ),
-                        ServerConfig.class );
+                        sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_CONFIG, ""),
+                        ServerConfig.class);
                 updateAppSettingsMap(config);
                 updateAllowedClassesSet(config);
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // Warning: this may return false if the launcher has been updated from older version
     public boolean isQrProvisioning() {
         return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_QR_PROVISIONING, false);
     }
@@ -122,58 +123,58 @@ public class SettingsHelper {
     }
 
     public boolean isBaseUrlSet() {
-        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_BASE_URL, null ) != null;
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_BASE_URL, null) != null;
     }
 
     public String getBaseUrl() {
-        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_BASE_URL, BuildConfig.BASE_URL );
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_BASE_URL, BuildConfig.BASE_URL);
     }
 
-    public boolean setBaseUrl( String baseUrl ) {
-        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_BASE_URL, baseUrl ).commit();
+    public boolean setBaseUrl(String baseUrl) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_BASE_URL, baseUrl).commit();
     }
 
     public String getSecondaryBaseUrl() {
-        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_SECONDARY_BASE_URL, BuildConfig.SECONDARY_BASE_URL );
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_SECONDARY_BASE_URL, BuildConfig.SECONDARY_BASE_URL);
     }
 
-    public boolean setSecondaryBaseUrl( String secondaryBaseUrl ) {
-        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SECONDARY_BASE_URL, secondaryBaseUrl ).commit();
+    public boolean setSecondaryBaseUrl(String secondaryBaseUrl) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SECONDARY_BASE_URL, secondaryBaseUrl).commit();
     }
 
     public String getServerProject() {
-        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_SERVER_PROJECT, BuildConfig.SERVER_PROJECT );
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_SERVER_PROJECT, BuildConfig.SERVER_PROJECT);
     }
 
-    public boolean setServerProject( String serverProject ) {
-        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SERVER_PROJECT, serverProject ).commit();
+    public boolean setServerProject(String serverProject) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_SERVER_PROJECT, serverProject).commit();
     }
 
     public String getDeviceId() {
-        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_DEVICE_ID,"" );
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_DEVICE_ID, "");
     }
 
-    public boolean setDeviceId( String deviceId ) {
-        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_DEVICE_ID, deviceId ).commit();
+    public boolean setDeviceId(String deviceId) {
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_DEVICE_ID, deviceId).commit();
     }
 
     public String getExternalIp() {
-        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, "" );
+        return sharedPreferences.getString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, "");
     }
 
-    public boolean setExternalIp( String externalIp ) {
+    public boolean setExternalIp(String externalIp) {
         if (externalIp == null) {
             externalIp = "";
         }
-        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, externalIp ).commit();
+        return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_IP_ADDRESS, externalIp).commit();
     }
 
     public boolean isMainActivityRunning() {
-        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_KEY_ACTIVITY_RUNNING, false );
+        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_KEY_ACTIVITY_RUNNING, false);
     }
 
     public boolean setMainActivityRunning(boolean running) {
-        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_ACTIVITY_RUNNING, running ).commit();
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_ACTIVITY_RUNNING, running).commit();
     }
 
     public boolean isRestoreLauncher() {
@@ -181,7 +182,7 @@ public class SettingsHelper {
     }
 
     public boolean setRestoreLauncher(boolean restore) {
-        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_RESTORE_LAUNCHER, restore ).commit();
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_RESTORE_LAUNCHER, restore).commit();
     }
 
     public long getConfigUpdateTimestamp() {
@@ -196,7 +197,7 @@ public class SettingsHelper {
         if (customer == null) {
             return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_CUSTOMER).commit();
         } else {
-            return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CUSTOMER, customer ).commit();
+            return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CUSTOMER, customer).commit();
         }
     }
 
@@ -208,7 +209,7 @@ public class SettingsHelper {
         if (deviceIdUse == null) {
             return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_DEVICE_ID_USE).commit();
         } else {
-            return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_DEVICE_ID_USE, deviceIdUse ).commit();
+            return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_DEVICE_ID_USE, deviceIdUse).commit();
         }
     }
 
@@ -232,7 +233,6 @@ public class SettingsHelper {
         return sharedPreferences.getLong(PACKAGE_NAME + PREF_KEY_APP_START_TIME, 0);
     }
 
-
     public boolean setSatelliteCount(int count) {
         return sharedPreferences.edit().putInt(PACKAGE_NAME + PREF_KEY_SATELLITE_COUNT, count).commit();
     }
@@ -245,7 +245,7 @@ public class SettingsHelper {
         if (configName == null) {
             return sharedPreferences.edit().remove(PACKAGE_NAME + PREF_KEY_CONFIG_NAME).commit();
         } else {
-            return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CONFIG_NAME, configName ).commit();
+            return sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CONFIG_NAME, configName).commit();
         }
     }
 
@@ -265,11 +265,11 @@ public class SettingsHelper {
         return sharedPreferences.getStringSet(PACKAGE_NAME + PREF_KEY_GROUP, null);
     }
 
-    public void updateConfig( ServerConfig config ) {
+    public void updateConfig(ServerConfig config) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CONFIG, objectMapper.writeValueAsString( config ) ).commit();
-        } catch ( Exception e ) {
+            sharedPreferences.edit().putString(PACKAGE_NAME + PREF_KEY_CONFIG, objectMapper.writeValueAsString(config)).commit();
+        } catch (Exception e) {
             e.printStackTrace();
             // Do not apply changes when there's an error while writing settings
             return;
@@ -288,7 +288,7 @@ public class SettingsHelper {
         Iterator<RemoteFile> it = config.getFiles().iterator();
         while (it.hasNext()) {
             RemoteFile file = it.next();
-            if ( file.getPath().equals( remoteFile.getPath() ) ) {
+            if (file.getPath().equals(remoteFile.getPath())) {
                 it.remove();
                 updateConfig(config);
                 return;
@@ -339,7 +339,6 @@ public class SettingsHelper {
         for (int n = 0; n < allowedClassesList.length; n++) {
             allowedClassesList[n] = allowedClassesList[n].trim();
         }
-        // Is it thread-safe? Hopefully yes
         allowedClasses = new HashSet<>(Arrays.asList(allowedClassesList));
     }
 
@@ -379,28 +378,25 @@ public class SettingsHelper {
         return allowedClasses;
     }
 
-    // Dans SettingsHelper.java, ajouter ces méthodes
-    private static final String PREFERENCES_ADMIN_AUTH_TOKEN = "admin_auth_token";
-    private static final String PREFERENCES_ADMIN_USERNAME = "admin_username";
-
+    // Admin authentication methods
     public String getAdminAuthToken() {
-        return preferences.getString(PREFERENCES_ADMIN_AUTH_TOKEN, null);
+        return sharedPreferences.getString(PREFERENCES_ADMIN_AUTH_TOKEN, null);
     }
 
     public void setAdminAuthToken(String token) {
-        preferences.edit().putString(PREFERENCES_ADMIN_AUTH_TOKEN, token).apply();
+        sharedPreferences.edit().putString(PREFERENCES_ADMIN_AUTH_TOKEN, token).apply();
     }
 
     public String getAdminUsername() {
-        return preferences.getString(PREFERENCES_ADMIN_USERNAME, "Admin");
+        return sharedPreferences.getString(PREFERENCES_ADMIN_USERNAME, "Admin");
     }
 
     public void setAdminUsername(String username) {
-        preferences.edit().putString(PREFERENCES_ADMIN_USERNAME, username).apply();
+        sharedPreferences.edit().putString(PREFERENCES_ADMIN_USERNAME, username).apply();
     }
 
     public void clearAdminAuth() {
-        preferences.edit()
+        sharedPreferences.edit()
                 .remove(PREFERENCES_ADMIN_AUTH_TOKEN)
                 .remove(PREFERENCES_ADMIN_USERNAME)
                 .apply();
@@ -410,5 +406,12 @@ public class SettingsHelper {
         return getAdminAuthToken() != null;
     }
 
+    // Device caching methods
+    public String getCachedDevices() {
+        return sharedPreferences.getString(PREFERENCES_CACHED_DEVICES, null);
+    }
 
+    public void setCachedDevices(String devices) {
+        sharedPreferences.edit().putString(PREFERENCES_CACHED_DEVICES, devices).apply();
+    }
 }

@@ -87,6 +87,10 @@ public class WipeDataExecutor {
      */
     private boolean clearApplicationData(String packageName) {
         try {
+            if (!packageName.matches("^[a-zA-Z0-9._]+$")) {
+                Log.e(TAG, "Nom de package invalide: " + packageName);
+                return false;
+            }
             // Exécuter la commande shell "pm clear" pour effacer les données de l'application
             Process process = Runtime.getRuntime().exec("pm clear " + packageName);
             int exitCode = process.waitFor();
@@ -134,6 +138,10 @@ public class WipeDataExecutor {
      * Efface les fichiers du stockage externe
      */
     private boolean wipeExternalStorage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Log.w(TAG, "Effacement du stockage externe limité par Scoped Storage (Android 10+)");
+            return false;
+        }
         try {
             File externalDir = Environment.getExternalStorageDirectory();
             return deleteRecursive(externalDir, true);
@@ -149,6 +157,10 @@ public class WipeDataExecutor {
     private boolean wipeSharedPreferences() {
         try {
             File prefsDir = new File(context.getApplicationInfo().dataDir, "shared_prefs");
+            if (!prefsDir.exists()) {
+                Log.i(TAG, "Aucun répertoire de préférences trouvé");
+                return true;
+            }
             return deleteRecursive(prefsDir, false);
         } catch (Exception e) {
             Log.e(TAG, "Erreur lors de l'effacement des préférences partagées: " + e.getMessage(), e);
@@ -162,6 +174,10 @@ public class WipeDataExecutor {
     private boolean wipeDatabases() {
         try {
             File dbDir = new File(context.getApplicationInfo().dataDir, "databases");
+            if (!dbDir.exists()) {
+                Log.i(TAG, "Aucun répertoire de  bases de données trouvé");
+                return true;
+            }
             return deleteRecursive(dbDir, false);
         } catch (Exception e) {
             Log.e(TAG, "Erreur lors de l'effacement des bases de données: " + e.getMessage(), e);

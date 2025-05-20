@@ -72,7 +72,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
             deviceNumberText.setText(device.getNumber());
             deviceNameText.setText(device.getName());
             statusText.setText(device.getStatus());
-            configNameText.setText(device.getConfigName());
+            configNameText.setText(device.getModel());
 
             // Définir la couleur du statut en fonction de l'état de l'appareil
             if ("En ligne".equals(device.getStatus())) {

@@ -17,7 +17,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.server.ServerApi;
-import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceImpl;
 import com.hmdm.launcher.ui.Admin.adapter.ConfigurationListAdapter;
 
@@ -122,7 +121,12 @@ public class ConfigurationListFragment extends Fragment implements Configuration
 
         public Configuration() {
         }
-
+        // Nouveau constructeur pour id et name
+        public Configuration(String id, String name) {
+            this.id = id;
+            this.name = name;
+            this.description = null; // Ou "" si une chaîne vide est préférable
+        }
         public String getId() {
             return id;
         }

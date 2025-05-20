@@ -125,7 +125,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
             deviceNameText.setText(device.getName());
             statusText.setText(device.getStatus());
             lastOnlineText.setText(device.getLastOnline());
-            configNameText.setText(device.getConfigName());
+            configNameText.setText(device.getModel());
 
             // Mettre à jour l'état des boutons en fonction du statut de l'appareil
             boolean isOnline = "En ligne".equals(device.getStatus());
@@ -151,6 +151,10 @@ public class DeviceDetailActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 showProgress(false);
                 Toast.makeText(this, "Appareil verrouillé avec succès", Toast.LENGTH_SHORT).show();
+                loadDeviceDetails(); // Rafraîchir les détails
+
+
+
             });
         }, error -> {
             runOnUiThread(() -> {
@@ -167,6 +171,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 showProgress(false);
                 Toast.makeText(this, "Appareil déverrouillé avec succès", Toast.LENGTH_SHORT).show();
+                loadDeviceDetails(); // Rafraîchir les détails
             });
         }, error -> {
             runOnUiThread(() -> {
@@ -183,6 +188,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 showProgress(false);
                 Toast.makeText(this, "Commande de redémarrage envoyée avec succès", Toast.LENGTH_SHORT).show();
+                loadDeviceDetails(); // Rafraîchir les détails
             });
         }, error -> {
             runOnUiThread(() -> {
