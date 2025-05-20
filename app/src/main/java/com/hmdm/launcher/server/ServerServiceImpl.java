@@ -193,23 +193,21 @@ public class ServerServiceImpl implements ServerApi {
                         try {
                             JSONObject jsonResponse = new JSONObject(responseBody);
                             JSONObject data = jsonResponse.getJSONObject("data");
-                            JSONArray items = data.getJSONArray("items");
+                            JSONObject devices = data.getJSONObject("devices");
+                            JSONArray items = devices.getJSONArray("items");
 
-                            List<DeviceListFragment.Device> devices = new ArrayList<>();
+                            List<DeviceListFragment.Device> deviceList = new ArrayList<>();
                             for (int i = 0; i < items.length(); i++) {
                                 JSONObject item = items.getJSONObject(i);
-
                                 DeviceListFragment.Device device = new DeviceListFragment.Device();
                                 device.setName(item.optString("description", "Sans nom"));
                                 device.setNumber(item.optString("number", "Inconnu"));
                                 device.setStatus(getStatusFromCode(item.optString("statusCode")));
                                 device.setLastOnline(convertTimestamp(item.optLong("lastUpdate")));
                                 device.setModel(item.optJSONObject("info").optString("model", "Inconnu"));
-
-                                devices.add(device);
+                                deviceList.add(device);
                             }
-
-                            successCallback.onDeviceList(devices);
+                            successCallback.onDeviceList(deviceList);
                         } catch (Exception e) {
                             Log.e(TAG, "Erreur lors du parsing de la réponse", e);
                             errorCallback.onError("Format de réponse invalide");
@@ -796,7 +794,7 @@ public class ServerServiceImpl implements ServerApi {
             return;
         }
 
-        String url = settingsHelper.getBaseUrl() + "/rest/private/summary/deviceStats";
+        String url = settingsHelper.getBaseUrl() + "/rest/private/summary/devices";
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer " + token)
@@ -815,9 +813,11 @@ public class ServerServiceImpl implements ServerApi {
                 if (response.isSuccessful()) {
                     try {
                         JSONObject json = new JSONObject(responseBody);
-                        int totalDevices = json.optInt("devicesTotal", 0);
-                        int enrolledDevices = json.optInt("devicesEnrolled", 0);
-                        int lastMonthEnrolled = json.optInt("devicesEnrolledLastMonth", 0);
+                        JSONObject data = json.getJSONObject("data");
+                        int totalDevices = data.optInt("devicesTotal", 0);
+                        int enrolledDevices = data.optInt("devicesEnrolled", 0);
+                        int lastMonthEnrolled = data.optInt("devicesEnrolledLastMonth", 0);
+
                         successCallback.onStats(totalDevices, enrolledDevices, lastMonthEnrolled);
                     } catch (Exception e) {
                         Log.e(TAG, "Erreur lors du parsing des stats", e);
