@@ -15,13 +15,13 @@ import com.hmdm.launcher.R;
 
 import java.util.List;
 
-public class PackageListAdapter extends ArrayAdapter<String> {
+public class  PackageListAdapter extends ArrayAdapter<String> {
 
     private List<String> packages;
     private LayoutInflater inflater;
 
     public PackageListAdapter(Context context, List<String> packages) {
-        super(context, R.layout.item_package, packages);
+        super(context, R.layout.item_application, packages);
         this.packages = packages;
         this.inflater = LayoutInflater.from(context);
     }
@@ -32,7 +32,7 @@ public class PackageListAdapter extends ArrayAdapter<String> {
         ViewHolder holder;
 
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.item_package, parent, false);
+            convertView = inflater.inflate(R.layout.item_application, parent, false);
             holder = new ViewHolder();
             holder.packageName = convertView.findViewById(R.id.text_package_name);
             holder.removeButton = convertView.findViewById(R.id.btn_remove_package);
