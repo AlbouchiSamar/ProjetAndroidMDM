@@ -1,7 +1,9 @@
 package com.hmdm.launcher.ui.Admin;
-
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,9 +12,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import com.airbnb.lottie.LottieAnimationView;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -106,7 +108,15 @@ public class DeviceStatsFragment extends Fragment {
         if (lastMonthEnrolled > 0) entries.add(new PieEntry(lastMonthEnrolled, "Inscrits dernier mois"));
 
         PieDataSet dataSet = new PieDataSet(entries, "Statistiques des appareils");
-        dataSet.setColors(new int[]{0xFF4CAF50, 0xFFFF9800}, requireContext());
+        try {
+            dataSet.setColors(new int[]{
+                    ContextCompat.getColor(requireContext(), R.color.enrolled_color),
+                    ContextCompat.getColor(requireContext(), R.color.last_month_color)
+            });
+        } catch (Resources.NotFoundException e) {
+            Log.e("DeviceStatsFragment", "Couleur introuvable, utilisation de couleurs par défaut", e);
+            dataSet.setColors(new int[]{Color.GREEN, Color.YELLOW});
+        }
         dataSet.setValueTextSize(12f);
         dataSet.setValueTextColor(android.R.color.white);
 

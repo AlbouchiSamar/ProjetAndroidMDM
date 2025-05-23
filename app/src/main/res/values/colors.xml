@@ -35,7 +35,12 @@
     <color name="colorLogError">#87d3e1</color>
     <color name="colorLogWarn">#87d3e1</color>
     <color name="colorLogInfo">#87d3e1</color>
+
     <color name="colorLogDebug">#87d3e1</color>
+    <color name="enrolled_color">#FF4CAF50</color>
+    <color name="last_month_color">#FFFF9800</color>
+    <color name="chart_color">#FF4CAF50</color>
+
 
 
 
