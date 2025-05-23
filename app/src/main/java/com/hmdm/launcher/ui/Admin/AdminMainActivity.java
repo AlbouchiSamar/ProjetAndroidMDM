@@ -73,15 +73,11 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
             loadFragment(new DeviceListFragment());
         } else if (id == R.id.nav_configurations) {
             loadFragment(new ConfigurationListFragment());
-        } else if (id == R.id.nav_wipe_data) {
-            Intent intent = new Intent(this, WipeDataActivity.class);
-            startActivity(intent);
-        } else if (id == R.id.nav_dashboard) {
+        }else if (id == R.id.nav_dashboard) {
             loadFragment(new DeviceStatsFragment());
 
-        }else if (id == R.id.nav_remote_control) {
-            loadFragment(new RemoteControlFragment());
-        } else if (id == R.id.nav_logs) {
+        }
+       else if (id == R.id.nav_logs) {
             loadFragment(new LogsFragment());
         } else if (id == R.id.nav_logout) {
             logout();

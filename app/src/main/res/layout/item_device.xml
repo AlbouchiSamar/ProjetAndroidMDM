@@ -12,13 +12,13 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
-
         <TextView
-            android:id="@+id/text_device_name"
+            android:id="@+id/text_device_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:textColor="?android:attr/textColorSecondary" />
 
         <TextView
             android:id="@+id/text_device_number"
@@ -27,6 +27,32 @@
             android:textSize="14sp"
             android:layout_marginTop="4dp" />
 
+        <TextView
+            android:id="@+id/text_device_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/Lastupdate"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/text_lastupdate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -66,6 +92,7 @@
                 android:layout_marginStart="8dp" />
 
         </LinearLayout>
+
 
     </LinearLayout>
 

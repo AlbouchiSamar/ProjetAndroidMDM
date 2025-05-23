@@ -55,6 +55,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
     }
 
     static class DeviceViewHolder extends RecyclerView.ViewHolder {
+        private TextView deviceIdText;
+        private TextView lastupdate;
+
         private TextView deviceNumberText;
         private TextView deviceNameText;
         private TextView statusText;
@@ -62,6 +65,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
 
         public DeviceViewHolder(@NonNull View itemView) {
             super(itemView);
+            deviceIdText = itemView.findViewById(R.id.text_device_id);
+            lastupdate = itemView.findViewById(R.id.text_lastupdate);
             deviceNumberText = itemView.findViewById(R.id.text_device_number);
             deviceNameText = itemView.findViewById(R.id.text_device_name);
             statusText = itemView.findViewById(R.id.text_status);
@@ -69,6 +74,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
         }
 
         public void bind(final DeviceListFragment.Device device, final OnDeviceClickListener listener) {
+            deviceIdText.setText(String.valueOf(device.getId()));
+            lastupdate.setText(device.getLastOnline());
             deviceNumberText.setText(device.getNumber());
             deviceNameText.setText(device.getName());
             statusText.setText(device.getStatus());

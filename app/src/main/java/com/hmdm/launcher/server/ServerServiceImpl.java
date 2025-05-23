@@ -2,21 +2,18 @@ package com.hmdm.launcher.server;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Base64;
 import android.util.Log;
 
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.ui.Admin.AdminLoginActivity;
+import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
-import com.hmdm.launcher.ui.Admin.LogsFragment;
-import com.hmdm.launcher.ui.Admin.WipeDataActivity;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -30,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -200,6 +198,7 @@ public class ServerServiceImpl implements ServerApi {
                             for (int i = 0; i < items.length(); i++) {
                                 JSONObject item = items.getJSONObject(i);
                                 DeviceListFragment.Device device = new DeviceListFragment.Device();
+                                device.setId(data.getInt("id"));
                                 device.setName(item.optString("description", "Sans nom"));
                                 device.setNumber(item.optString("number", "Inconnu"));
                                 device.setStatus(getStatusFromCode(item.optString("statusCode")));
@@ -227,7 +226,139 @@ public class ServerServiceImpl implements ServerApi {
             errorCallback.onError("Erreur interne: " + e.getMessage());
         }
     }
+    @Override
+    public void deleteDevice(String deviceId, String token, DeleteDeviceCallback successCallback, ErrorCallback errorCallback) {
+        if (token == null || token.isEmpty()) {
+            Log.e(TAG, "Token d'authentification manquant");
+            errorCallback.onError("Token d'authentification manquant");
+            return;
+        }
 
+        try {
+            String url = settingsHelper.getBaseUrl() + "/rest/private/devices/" + deviceId;
+            Log.d(TAG, "URL de la requête : " + url);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + token)
+                    .delete()
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion", e);
+                    errorCallback.onError("Erreur de connexion : " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse JSON : " + responseBody);
+
+                    if (response.code() == 404) {
+                        Log.e(TAG, "Erreur 404 : Endpoint ou appareil non trouvé : " + url);
+                        errorCallback.onError("Erreur 404 : Appareil ou endpoint non trouvé. Vérifiez l'ID ou la configuration serveur.");
+                        return;
+                    }
+
+                    if (response.isSuccessful()) {
+                        try {
+                            JSONObject json = new JSONObject(responseBody);
+                            if (!json.optString("status").equals("OK")) {
+                                errorCallback.onError("Réponse non valide : status = " + json.optString("status"));
+                                return;
+                            }
+                            String message = json.optString("message", "Appareil supprimé avec succès");
+                            successCallback.onDeleteSuccess(message);
+                        } catch (Exception e) {
+                            errorCallback.onError("Erreur de parsing : " + e.getMessage());
+                        }
+                    } else {
+                        errorCallback.onError("Erreur " + response.code() + " : " + responseBody);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            errorCallback.onError("Erreur interne : " + e.getMessage());
+        }
+    }
+    @Override
+    public void getApplications(ServerApi.ApplicationListCallback successCallback, ServerApi.ErrorCallback errorCallback) {
+        try {
+            String url = settingsHelper.getBaseUrl() + "/rest/private/applications/search";
+            String token = settingsHelper.getAdminAuthToken();
+
+            // Vérifier si le token est valide
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                errorCallback.onError("Token d'authentification manquant");
+                return;
+            }
+
+            // Construire une requête GET
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Authorization", "Bearer " + token)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors de la récupération des applications", e);
+                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        errorCallback.onError("Session expirée");
+                        return;
+                    }
+
+                    if (response.isSuccessful()) {
+                        String responseBody = response.body().string();
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            JSONArray data = jsonResponse.getJSONArray("data");
+
+                            List<ApplicationListFragment.Application> applicationList = new ArrayList<>();
+                            for (int i = 0; i < data.length(); i++) {
+                                JSONObject item = data.getJSONObject(i);
+                                ApplicationListFragment.Application application = new ApplicationListFragment.Application();
+                                application.setId(item.getInt("id"));
+                                application.setName(item.optString("name", "Sans nom"));
+                                application.setPkg(item.optString("pkg", "Inconnu"));
+                                applicationList.add(application);
+                            }
+                            successCallback.onApplicationList(applicationList);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
+                            errorCallback.onError("Format de réponse invalide: " + e.getMessage());
+                        }
+                    } else {
+                        String errorMessage;
+                        if (response.code() == 404) {
+                            errorMessage = "Applications non trouvées";
+                        } else if (response.code() == 500) {
+                            errorMessage = "Erreur serveur interne";
+                        } else {
+                            errorMessage = "Erreur serveur: " + response.code();
+                        }
+                        if (response.body() != null) {
+                            errorMessage += ", Détails: " + response.body().string();
+                        }
+                        Log.e(TAG, "Échec de la récupération des applications: " + errorMessage);
+                        errorCallback.onError(errorMessage);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
+            errorCallback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
     @Override
     public void getDeviceDetails(String deviceNumber, ServerApi.DeviceCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         try {
@@ -260,7 +391,7 @@ public class ServerServiceImpl implements ServerApi {
                             JSONObject data = jsonResponse.getJSONObject("data");
 
                             DeviceListFragment.Device device = new DeviceListFragment.Device();
-                            device.setId(data.getString("id"));
+                            device.setId(data.getInt("id"));
                             device.setNumber(data.getString("number"));
                             device.setName(data.optString("name", "Sans nom"));
                             device.setStatus(data.optBoolean("online", false) ? "En ligne" : "Hors ligne");
@@ -345,113 +476,9 @@ public class ServerServiceImpl implements ServerApi {
         }
     }
 
+
+
    /* @Override
-    public void getDeviceScreenshot(String deviceNumber, ServerApi.SuccessCallback<Bitmap> successCallback, ServerApi.ErrorCallback errorCallback) {
-        try {
-            String url = settingsHelper.getBaseUrl() + "/rest/public/admin/devices/" + deviceNumber + "/screenshot";
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .get()
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de la récupération de la capture d'écran", e);
-                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.code() == 401) {
-                        redirectToLogin();
-                        errorCallback.onError("Session expirée");
-                        return;
-                    }
-                    if (response.isSuccessful()) {
-                        String responseBody = response.body().string();
-                        try {
-                            JSONObject jsonResponse = new JSONObject(responseBody);
-                            String base64Image = jsonResponse.optString("screenshot");
-                            if (base64Image != null && !base64Image.isEmpty()) {
-                                byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
-                                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                                successCallback.onSuccess(bitmap);
-                            } else {
-                                Log.e(TAG, "Capture d'écran vide ou invalide reçue");
-                                errorCallback.onError("Capture d'écran vide ou invalide reçue");
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Erreur lors du décodage de la capture d'écran", e);
-                            errorCallback.onError("Format de réponse invalide");
-                        }
-                    } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
-                        Log.e(TAG, "Échec de la récupération de la capture d'écran: " + errorMessage);
-                        errorCallback.onError(errorMessage);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            errorCallback.onError("Erreur interne: " + e.getMessage());
-        }
-    }*/
-
-    @Override
-    public void sendRemoteControlCommand(String deviceNumber, String command, int x, int y, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
-        try {
-            String url = settingsHelper.getBaseUrl() + "/rest/public/admin/devices/" + deviceNumber + "/remote-control";
-
-            JSONObject jsonBody = new JSONObject();
-            jsonBody.put("command", command);
-            jsonBody.put("x", x);
-            jsonBody.put("y", y);
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .post(RequestBody.create(JSON, jsonBody.toString()))
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de l'envoi de la commande de contrôle à distance", e);
-                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.code() == 401) {
-                        redirectToLogin();
-                        errorCallback.onError("Session expirée");
-                        return;
-                    }
-                    if (response.isSuccessful()) {
-                        successCallback.onSuccess();
-                    } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
-                        Log.e(TAG, "Échec de l'envoi de la commande de contrôle à distance: " + errorMessage);
-                        errorCallback.onError(errorMessage);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            errorCallback.onError("Erreur interne: " + e.getMessage());
-        }
-    }
-/*
-    @Override
     public void getLogs(String deviceNumber, ServerApi.SuccessCallback<List<LogsFragment.LogEntry>> successCallback, ServerApi.ErrorCallback errorCallback) {
         try {
             String url;
@@ -520,134 +547,6 @@ public class ServerServiceImpl implements ServerApi {
         }
     }*/
 
-    @Override
-    public void addDevice(JSONObject deviceData, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
-        try {
-            if (deviceData == null || !deviceData.has("number") || !deviceData.has("name") || !deviceData.has("configurationId")) {
-                errorCallback.onError("Données de l'appareil incomplètes");
-                return;
-            }
-            String deviceNumber = deviceData.getString("number");
-            if (!deviceNumber.matches("[a-zA-Z0-9_-]+")) {
-                errorCallback.onError("Numéro d'appareil invalide");
-                return;
-            }
-            String deviceName = deviceData.getString("name");
-            if (deviceName.length() > 100) {
-                errorCallback.onError("Nom d'appareil trop long");
-                return;
-            }
-
-            String url = settingsHelper.getBaseUrl() + "/rest/public/admin/devices";
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .post(RequestBody.create(JSON, deviceData.toString()))
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de l'ajout de l'appareil", e);
-                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.code() == 401) {
-                        redirectToLogin();
-                        errorCallback.onError("Session expirée");
-                        return;
-                    }
-                    if (response.isSuccessful()) {
-                        successCallback.onSuccess();
-                    } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.code() == 409) {
-                            errorMessage = "L'appareil existe déjà";
-                        }
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
-                        Log.e(TAG, "Échec de l'ajout de l'appareil: " + errorMessage);
-                        errorCallback.onError(errorMessage);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            errorCallback.onError("Erreur interne: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void lockDevice(String deviceNumber, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
-        sendDeviceCommand(deviceNumber, "LOCK", successCallback, errorCallback);
-    }
-
-    @Override
-    public void unlockDevice(String deviceNumber, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
-        sendDeviceCommand(deviceNumber, "UNLOCK", successCallback, errorCallback);
-    }
-
-    @Override
-    public void rebootDevice(String deviceNumber, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
-        sendDeviceCommand(deviceNumber, "REBOOT", successCallback, errorCallback);
-    }
-
-    @Override
-    public void wipeDeviceData(String deviceNumber, WipeDataActivity.WipeDataRequest request, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
-        try {
-            String url = settingsHelper.getBaseUrl() + "/rest/private/devices/" + deviceNumber + "/wipe";
-
-            JSONObject jsonBody = new JSONObject();
-            jsonBody.put("wipeType", request.getWipeType());
-
-            if (request.getPackages() != null && !request.getPackages().isEmpty()) {
-                JSONArray packagesArray = new JSONArray();
-                for (String pkg : request.getPackages()) {
-                    packagesArray.put(pkg);
-                }
-                jsonBody.put("packages", packagesArray);
-            }
-
-            Request httpRequest = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .post(RequestBody.create(JSON, jsonBody.toString()))
-                    .build();
-
-            client.newCall(httpRequest).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de l'envoi de la commande d'effacement", e);
-                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.code() == 401) {
-                        redirectToLogin();
-                        errorCallback.onError("Session expirée");
-                        return;
-                    }
-                    if (response.isSuccessful()) {
-                        successCallback.onSuccess();
-                    } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
-                        Log.e(TAG, "Échec de l'envoi de la commande d'effacement: " + errorMessage);
-                        errorCallback.onError(errorMessage);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            errorCallback.onError("Erreur interne: " + e.getMessage());
-        }
-    }
 
     @Override
     public void uninstallApp(String deviceNumber, String packageName, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
@@ -696,98 +595,7 @@ public class ServerServiceImpl implements ServerApi {
         }
     }
 
-    @Override
-    public void sendPeripheralControlCommand(String deviceId, String peripheral, String action, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
-        try {
-            String url = settingsHelper.getBaseUrl() + "/rest/public/admin/devices/" + deviceId + "/control";
-
-            JSONObject jsonBody = new JSONObject();
-            jsonBody.put("peripheral", peripheral);
-            jsonBody.put("action", action);
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .post(RequestBody.create(JSON, jsonBody.toString()))
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de l'envoi de la commande de contrôle des périphériques", e);
-                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.code() == 401) {
-                        redirectToLogin();
-                        errorCallback.onError("Session expirée");
-                        return;
-                    }
-                    if (response.isSuccessful()) {
-                        successCallback.onSuccess();
-                    } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
-                        Log.e(TAG, "Échec de l'envoi de la commande de contrôle des périphériques: " + errorMessage);
-                        errorCallback.onError(errorMessage);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            errorCallback.onError("Erreur interne: " + e.getMessage());
-        }
-    }
-
-    private void sendDeviceCommand(String deviceNumber, String command, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
-        try {
-            String url = settingsHelper.getBaseUrl() + "/rest/private/devices/" + deviceNumber + "/command";
-
-            JSONObject jsonBody = new JSONObject();
-            jsonBody.put("command", command);
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .post(RequestBody.create(JSON, jsonBody.toString()))
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de l'envoi de la commande", e);
-                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.code() == 401) {
-                        redirectToLogin();
-                        errorCallback.onError("Session expirée");
-                        return;
-                    }
-                    if (response.isSuccessful()) {
-                        successCallback.onSuccess();
-                    } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
-                        Log.e(TAG, "Échec de l'envoi de la commande: " + errorMessage);
-                        errorCallback.onError(errorMessage);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            errorCallback.onError("Erreur interne: " + e.getMessage());
-        }
-    }
-    @Override
+ @Override
     public void getDeviceStats(String token, DeviceStatsCallback successCallback, ErrorCallback errorCallback) {
         if (token == null || token.isEmpty()) {
             errorCallback.onError("Token d'authentification manquant");
@@ -829,5 +637,171 @@ public class ServerServiceImpl implements ServerApi {
                 }
             }
         });
+    }
+    @Override
+    public void deleteApplication(int applicationId, SuccessCallback successCallback, ErrorCallback errorCallback) {
+        try {
+            String url = settingsHelper.getBaseUrl() + "/rest/private/applications/" + applicationId;
+            String token = settingsHelper.getAdminAuthToken();
+
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                errorCallback.onError("Token d'authentification manquant");
+                return;
+            }
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .delete()
+                    .addHeader("Authorization", "Bearer " + token)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors de la suppression de l'application", e);
+                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        errorCallback.onError("Session expirée");
+                        return;
+                    }
+
+                    if (response.isSuccessful()) {
+                        String responseBody = response.body().string();
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            String status = jsonResponse.getString("status");
+                            String message = jsonResponse.getString("message");
+
+                            if ("OK".equals(status)) {
+                                successCallback.onSuccess();
+                            } else {
+                                errorCallback.onError("Échec de la suppression: " + message);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
+                            errorCallback.onError("Format de réponse invalide: " + e.getMessage());
+                        }
+                    } else {
+                        String errorMessage;
+                        if (response.code() == 404) {
+                            errorMessage = "Application non trouvée";
+                        } else if (response.code() == 500) {
+                            errorMessage = "Erreur serveur interne";
+                        } else {
+                            errorMessage = "Erreur serveur: " + response.code();
+                        }
+                        if (response.body() != null) {
+                            errorMessage += ", Détails: " + response.body().string();
+                        }
+                        Log.e(TAG, "Échec de la suppression de l'application: " + errorMessage);
+                        errorCallback.onError(errorMessage);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête de suppression", e);
+            errorCallback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
+    @Override
+    public void uploadApplicationFile(File apkFile, FileUploadCallback successCallback, ErrorCallback errorCallback) {
+        try {
+            String url = settingsHelper.getBaseUrl() + "/rest/private/web-ui-files";
+            String token = settingsHelper.getAdminAuthToken();
+
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                errorCallback.onError("Token d'authentification manquant");
+                return;
+            }
+
+            if (apkFile == null || !apkFile.exists()) {
+                errorCallback.onError("Fichier APK invalide ou introuvable");
+                return;
+            }
+
+            RequestBody fileBody = RequestBody.create(
+                    apkFile,
+                    MediaType.parse("application/vnd.android.package-archive")
+            );
+
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("file", apkFile.getName(), fileBody)
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(requestBody)
+                    .addHeader("Authorization", "Bearer " + token)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors du téléversement du fichier", e);
+                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        errorCallback.onError("Session expirée");
+                        return;
+                    }
+
+                    if (response.isSuccessful()) {
+                        String responseBody = response.body().string();
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            String serverPath = jsonResponse.optString("serverPath", "Inconnu");
+                            JSONObject fileDetails = jsonResponse.optJSONObject("fileDetails");
+                            if (fileDetails == null) {
+                                errorCallback.onError("Détails du fichier manquants dans la réponse");
+                                return;
+                            }
+
+                            String pkg = fileDetails.optString("pkg", "Inconnu");
+                            String name = fileDetails.optString("name", "Sans nom");
+                            String version = fileDetails.optString("version", "Inconnue");
+
+                            // Vérifier si les champs essentiels sont présents
+                            if (pkg.equals("Inconnu") || name.equals("Sans nom")) {
+                                Log.w(TAG, "Certains détails du fichier sont manquants dans la réponse");
+                            }
+
+                            successCallback.onFileUploaded(serverPath, pkg, name, version);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
+                            errorCallback.onError("Format de réponse invalide: " + e.getMessage());
+                        }
+                    } else {
+                        String errorMessage;
+                        if (response.code() == 404) {
+                            errorMessage = "Ressource non trouvée";
+                        } else if (response.code() == 500) {
+                            errorMessage = "Erreur serveur interne";
+                        } else {
+                            errorMessage = "Erreur serveur: " + response.code();
+                        }
+                        if (response.body() != null) {
+                            errorMessage += ", Détails: " + response.body().string();
+                        }
+                        Log.e(TAG, "Échec du téléversement du fichier: " + errorMessage);
+                        errorCallback.onError(errorMessage);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête de téléversement", e);
+            errorCallback.onError("Erreur interne: " + e.getMessage());
+        }
     }
 }

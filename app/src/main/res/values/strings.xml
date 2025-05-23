@@ -239,6 +239,8 @@
     <string name="select_configuration">Select configuration</string>
     <string name="add_device">Add device</string>
     <string name="Model">Model\n</string>
+    <string name="Lastupdate">Last Update</string>
+    <string name="list_des_appareils">List des Appareils</string>
 
 
 </resources><!-- Entrées à ajouter dans res/values/strings.xml -->

@@ -18,9 +18,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.server.ServerApi;
-import com.hmdm.launcher.server.ServerService;
 import com.hmdm.launcher.server.ServerServiceImpl;
-import com.hmdm.launcher.ui.Admin.DeviceDetailActivity;
 import com.hmdm.launcher.ui.Admin.adapter.DeviceListAdapter;
 
 import java.util.ArrayList;
@@ -112,7 +110,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
     @Override
     public void onDeviceClick(Device device) {
         // Ouvrir l'écran de détails de l'appareil
-        Intent intent = new Intent(requireContext(), DeviceDetailActivity.class);
+        Intent intent = new Intent(requireContext(), LogsFragment.class);
         intent.putExtra("device_number", device.getNumber());
         startActivity(intent);
     }
@@ -122,7 +120,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
     // Classe interne pour représenter un appareil
     // Classe interne pour représenter un appareil
     public static class Device {
-        private String id;
+        private int id;
         private String number;
         private String name;
         private String status;
@@ -132,7 +130,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         public Device() {
         }
 
-        public Device(String id, String number, String name, String status, String lastOnline, String model) {
+        public Device(int id, String number, String name, String status, String lastOnline, String model) {
             this.id = id;
             this.number = number;
             this.name = name;
@@ -141,11 +139,11 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
             this.model = model;
         }
 
-        public String getId() {
+        public int getId() {
             return id;
         }
 
-        public void setId(String id) {
+        public void setId(int id) {
             this.id = id;
         }
 

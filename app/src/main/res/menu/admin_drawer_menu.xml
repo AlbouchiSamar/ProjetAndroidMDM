@@ -8,6 +8,10 @@
             android:icon="@drawable/ic_devices"
             android:title="@string/devices" />
         <item
+            android:id="@+id/nav_devices_list"
+            android:icon="@drawable/ic_devices"
+            android:title="@string/list_des_appareils" />
+        <item
             android:id="@+id/nav_logs"
             android:icon="@drawable/ic_logs"
             android:title="@string/logs"

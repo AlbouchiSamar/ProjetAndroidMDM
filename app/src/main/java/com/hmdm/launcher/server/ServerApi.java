@@ -1,14 +1,12 @@
 package com.hmdm.launcher.server;
 
-import android.graphics.Bitmap;
-
+import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
-import com.hmdm.launcher.ui.Admin.LogsFragment;
-import com.hmdm.launcher.ui.Admin.WipeDataActivity;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -58,24 +56,6 @@ public interface ServerApi {
      */
     void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback);
 
-    /**
-     * Retrieves a screenshot for a specific device.
-     * @param deviceNumber Device number.
-     * @param successCallback Callback called with the screenshot Bitmap on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-   // void getDeviceScreenshot(String deviceNumber, SuccessCallback<Bitmap> successCallback, ErrorCallback errorCallback);
-
-    /**
-     * Sends a remote control command to a specific device.
-     * @param deviceNumber Device number.
-     * @param command Command type (e.g., "tap", "swipe").
-     * @param x X coordinate.
-     * @param y Y coordinate.
-     * @param successCallback Callback called on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-    void sendRemoteControlCommand(String deviceNumber, String command, int x, int y, SuccessCallback successCallback, ErrorCallback errorCallback);
 
     /**
      * Retrieves logs (either for a specific device or general).
@@ -85,46 +65,8 @@ public interface ServerApi {
      */
    // void getLogs(String deviceNumber, SuccessCallback<List<LogsFragment.LogEntry>> successCallback, ErrorCallback errorCallback);
 
-    /**
-     * Adds a new device.
-     * @param deviceData Device data (JSON containing number, name, configurationId).
-     * @param successCallback Callback called on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-    void addDevice(JSONObject deviceData, SuccessCallback successCallback, ErrorCallback errorCallback);
 
-    /**
-     * Locks a device remotely.
-     * @param deviceNumber Unique device number.
-     * @param successCallback Callback called on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-    void lockDevice(String deviceNumber, SuccessCallback successCallback, ErrorCallback errorCallback);
 
-    /**
-     * Unlocks a device remotely.
-     * @param deviceNumber Unique device number.
-     * @param successCallback Callback called on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-    void unlockDevice(String deviceNumber, SuccessCallback successCallback, ErrorCallback errorCallback);
-
-    /**
-     * Reboots a device remotely.
-     * @param deviceNumber Unique device number.
-     * @param successCallback Callback called on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-    void rebootDevice(String deviceNumber, SuccessCallback successCallback, ErrorCallback errorCallback);
-
-    /**
-     * Wipes data from a device remotely.
-     * @param deviceNumber Unique device number.
-     * @param request Parameters for the wipe request (wipe type, packages).
-     * @param successCallback Callback called on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-    void wipeDeviceData(String deviceNumber, WipeDataActivity.WipeDataRequest request, SuccessCallback successCallback, ErrorCallback errorCallback);
 
     /**
      * Requests the uninstallation of an application on a device.
@@ -134,16 +76,7 @@ public interface ServerApi {
      * @param errorCallback Callback called with an error message on failure.
      */
     void uninstallApp(String deviceNumber, String packageName, SuccessCallback successCallback, ErrorCallback errorCallback);
-
-    /**
-     * Sends a command to control device peripherals.
-     * @param deviceId Device ID.
-     * @param peripheral Peripheral type (WIFI, BLUETOOTH, GPS).
-     * @param action Action to perform (ENABLE, DISABLE).
-     * @param successCallback Callback called on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-    void sendPeripheralControlCommand(String deviceId, String peripheral, String action, SuccessCallback successCallback, ErrorCallback errorCallback);
+    void deleteApplication(int applicationId, SuccessCallback successCallback, ErrorCallback errorCallback);
 
     /**
      * Interface for success callbacks without a return value.
@@ -193,4 +126,22 @@ public interface ServerApi {
     }
 
     void getDeviceStats(String token, DeviceStatsCallback successCallback, ErrorCallback errorCallback);
+    // Callbacks pour la réinitialisation
+    interface ResetDeviceCallback {
+        void onResetSuccess(String message);
+    }
+
+   interface DeleteDeviceCallback {
+        void onDeleteSuccess(String message);
+    }
+    void deleteDevice(String deviceId, String token, DeleteDeviceCallback successCallback, ErrorCallback errorCallback);
+    interface ApplicationListCallback {
+        void onApplicationList(List<ApplicationListFragment.Application> applications);
+    }
+
+    void getApplications(ApplicationListCallback successCallback, ErrorCallback errorCallback);
+    interface FileUploadCallback {
+        void onFileUploaded(String serverPath, String pkg, String name, String version);
+    }
+    void uploadApplicationFile(File apkFile, FileUploadCallback successCallback, ErrorCallback errorCallback);
 }
