@@ -241,6 +241,7 @@
     <string name="Model">Model\n</string>
     <string name="Lastupdate">Last Update</string>
     <string name="list_des_appareils">List des Appareils</string>
+    <string name="list_des_applications">Application List</string>
 
 
 </resources><!-- Entrées à ajouter dans res/values/strings.xml -->

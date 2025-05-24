@@ -198,7 +198,7 @@ public class ServerServiceImpl implements ServerApi {
                             for (int i = 0; i < items.length(); i++) {
                                 JSONObject item = items.getJSONObject(i);
                                 DeviceListFragment.Device device = new DeviceListFragment.Device();
-                                device.setId(item.getInt("id"));
+                                device.setId(item.optInt("id", -1));
                                 device.setName(item.optString("description", "Sans nom"));
                                 device.setNumber(item.optString("number", "Inconnu"));
                                 device.setStatus(getStatusFromCode(item.optString("statusCode")));

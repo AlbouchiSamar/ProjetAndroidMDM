@@ -79,7 +79,7 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
         }
        else if (id == R.id.nav_logs) {
             loadFragment(new LogsFragment());
-        }else if (id == R.id.nav_map) {
+        }else if (id == R.id.nav_devices_list) {
             loadFragment(new ApplicationListFragment());
         }else if (id == R.id.nav_geozones) {
             loadFragment(new AddApplicationFragment());
