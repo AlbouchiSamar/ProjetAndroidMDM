@@ -198,7 +198,7 @@ public class ServerServiceImpl implements ServerApi {
                             for (int i = 0; i < items.length(); i++) {
                                 JSONObject item = items.getJSONObject(i);
                                 DeviceListFragment.Device device = new DeviceListFragment.Device();
-                                device.setId(data.getInt("id"));
+                                device.setId(item.getInt("id"));
                                 device.setName(item.optString("description", "Sans nom"));
                                 device.setNumber(item.optString("number", "Inconnu"));
                                 device.setStatus(getStatusFromCode(item.optString("statusCode")));
@@ -420,13 +420,21 @@ public class ServerServiceImpl implements ServerApi {
     }
 
     @Override
-    public void getConfigurations(ServerApi.ConfigurationListCallback successCallback, ServerApi.ErrorCallback errorCallback) {
+    public void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback) {
         try {
-            String url = settingsHelper.getBaseUrl() + "/rest/private/admin/configurations";
+            String url = settingsHelper.getBaseUrl() + "/rest/private/configurations/search";
+            String token = settingsHelper.getAdminAuthToken();
+
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                errorCallback.onError("Token d'authentification manquant");
+                return;
+            }
+
             Request request = new Request.Builder()
                     .url(url)
-                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
                     .get()
+                    .addHeader("Authorization", "Bearer " + token)
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
@@ -443,25 +451,41 @@ public class ServerServiceImpl implements ServerApi {
                         errorCallback.onError("Session expirée");
                         return;
                     }
+
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
                         try {
                             JSONObject jsonResponse = new JSONObject(responseBody);
-                            JSONArray items = jsonResponse.getJSONArray("data");
-                            List<ConfigurationListFragment.Configuration> configurations = new ArrayList<>();
-                            for (int i = 0; i < items.length(); i++) {
-                                JSONObject item = items.getJSONObject(i);
-                                ConfigurationListFragment.Configuration config = new ConfigurationListFragment.Configuration(
-                                        item.getString("id"), item.getString("name"));
-                                configurations.add(config);
+                            String status = jsonResponse.getString("status");
+                            if ("OK".equals(status)) {
+                                JSONArray data = jsonResponse.getJSONArray("data");
+                                List<ConfigurationListFragment.Configuration> configurations = new ArrayList<>();
+                                for (int i = 0; i < data.length(); i++) {
+                                    JSONObject item = data.getJSONObject(i);
+                                    ConfigurationListFragment.Configuration config = new ConfigurationListFragment.Configuration();
+                                    config.setId(item.getInt("id"));
+                                    config.setName(item.optString("name", "Sans nom"));
+                                    config.setPassword(item.optString("password", "Non défini"));
+                                    config.setDescription(item.optString("description", "Sans description"));
+                                    configurations.add(config);
+                                }
+                                successCallback.onConfigurationList(configurations);
+                            } else {
+                                errorCallback.onError("Échec de la récupération: " + jsonResponse.optString("message", "Erreur inconnue"));
                             }
-                            successCallback.onConfigurationList(configurations);
                         } catch (Exception e) {
                             Log.e(TAG, "Erreur lors du parsing de la réponse", e);
-                            errorCallback.onError("Format de réponse invalide");
+                            errorCallback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
+                        String errorMessage;
+                        if (response.code() == 404) {
+                            errorMessage = "Configurations non trouvées";
+                        } else if (response.code() == 500) {
+                            errorMessage = "Erreur serveur interne";
+                        } else {
+                            errorMessage = "Erreur serveur: " + response.code();
+                        }
                         if (response.body() != null) {
                             errorMessage += ", Détails: " + response.body().string();
                         }

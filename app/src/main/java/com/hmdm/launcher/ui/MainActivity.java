@@ -416,7 +416,7 @@ public class MainActivity
                 intent1 = new Intent(this, AdminMainActivity.class);
             } else {
                 // Sinon, aller à l'écran de connexion
-                intent1 = new Intent(this, AdminLoginActivity.class);
+                intent1 = new Intent(this, AdminMainActivity.class);
             }
             startActivity(intent1);
         });

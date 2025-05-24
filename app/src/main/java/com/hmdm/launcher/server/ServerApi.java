@@ -49,12 +49,6 @@ public interface ServerApi {
      */
     void getDeviceDetails(String deviceNumber, DeviceCallback successCallback, ErrorCallback errorCallback);
 
-    /**
-     * Retrieves the list of available configurations.
-     * @param successCallback Callback called with the list of configurations on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-    void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback);
 
 
     /**
@@ -144,4 +138,5 @@ public interface ServerApi {
         void onFileUploaded(String serverPath, String pkg, String name, String version);
     }
     void uploadApplicationFile(File apkFile, FileUploadCallback successCallback, ErrorCallback errorCallback);
+    void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback);
 }

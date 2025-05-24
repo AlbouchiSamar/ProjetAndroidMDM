@@ -39,7 +39,7 @@ public class ConfigurationListAdapter extends RecyclerView.Adapter<Configuration
 
     @Override
     public int getItemCount() {
-        return configurations.size();
+        return configurations != null ? configurations.size() : 0;
     }
 
     public void updateConfigurations(List<ConfigurationListFragment.Configuration> newConfigurations) {
@@ -53,18 +53,24 @@ public class ConfigurationListAdapter extends RecyclerView.Adapter<Configuration
     }
 
     static class ConfigurationViewHolder extends RecyclerView.ViewHolder {
-        private TextView configNameText;
-        private TextView configDescriptionText;
+        private TextView textId;
+        private TextView textName;
+        private TextView textPassword;
+        private TextView textDescription;
 
         public ConfigurationViewHolder(@NonNull View itemView) {
             super(itemView);
-            configNameText = itemView.findViewById(R.id.text_config_name);
-            configDescriptionText = itemView.findViewById(R.id.text_config_description);
+            textId = itemView.findViewById(R.id.text_id);
+            textName = itemView.findViewById(R.id.text_name);
+            textPassword = itemView.findViewById(R.id.text_password);
+            textDescription = itemView.findViewById(R.id.text_description);
         }
 
         public void bind(final ConfigurationListFragment.Configuration configuration, final OnConfigurationClickListener listener) {
-            configNameText.setText(configuration.getName());
-            configDescriptionText.setText(configuration.getDescription());
+            textId.setText("ID: " + configuration.getId());
+            textName.setText(configuration.getName());
+            textPassword.setText("Mot de passe: " + configuration.getPassword());
+            textDescription.setText(configuration.getDescription());
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
