@@ -74,14 +74,14 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
         }
 
         public void bind(final DeviceListFragment.Device device, final OnDeviceClickListener listener) {
-            deviceIdText.setText(String.valueOf(device.getId()));
-            lastupdate.setText(device.getLastOnline());
-            deviceNumberText.setText(device.getNumber());
-            deviceNameText.setText(device.getName());
-            statusText.setText(device.getStatus());
-            configNameText.setText(device.getModel());
+            deviceIdText.setText(device.getId() != -1 ? String.valueOf(device.getId()) : "Inconnu");
+            lastupdate.setText(device.getLastOnline() != null ? device.getLastOnline() : "Inconnu");
+            deviceNumberText.setText(device.getNumber() != null ? device.getNumber() : "Inconnu");
+            deviceNameText.setText(device.getName() != null ? device.getName() : "Sans nom");
+            statusText.setText(device.getStatus() != null ? device.getStatus() : "Inconnu");
+            configNameText.setText(device.getModel() != null ? device.getModel() : "Inconnu");
 
-            // Définir la couleur du statut en fonction de l'état de l'appareil
+            // Définir la couleur du statut
             if ("En ligne".equals(device.getStatus())) {
                 statusText.setTextColor(itemView.getContext().getResources().getColor(R.color.colorOnline));
             } else {

@@ -35,6 +35,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
     private List<Device> devices = new ArrayList<>();
 
     private ServerApi serverService;
+    private boolean isLoading = false;
 
     @Nullable
     @Override
@@ -66,23 +67,25 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         recyclerView.setAdapter(adapter);
     }
 
+
     private void loadDevices() {
+        if (isLoading) return; // Ignorer si un chargement est en cours
+        isLoading = true;
         showProgress(true);
 
         serverService.getDevices(deviceList -> {
-            devices.clear();
-            devices.addAll(deviceList);
-
             requireActivity().runOnUiThread(() -> {
-                adapter.notifyDataSetChanged();
+                adapter.updateDevices(deviceList); // Utiliser la méthode de l'adaptateur
                 showProgress(false);
                 updateEmptyView();
+                isLoading = false;
             });
         }, error -> {
             requireActivity().runOnUiThread(() -> {
                 showProgress(false);
                 Toast.makeText(requireContext(), "Erreur lors du chargement des appareils: " + error, Toast.LENGTH_LONG).show();
                 updateEmptyView();
+                isLoading = false;
             });
         });
     }

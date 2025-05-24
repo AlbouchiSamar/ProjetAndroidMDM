@@ -186,30 +186,61 @@ public class ServerServiceImpl implements ServerApi {
                         errorCallback.onError("Session expirée");
                         return;
                     }
+
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
+                        Log.d(TAG, "Réponse brute: " + responseBody); // Ajouter ce log
                         try {
                             JSONObject jsonResponse = new JSONObject(responseBody);
-                            JSONObject data = jsonResponse.getJSONObject("data");
-                            JSONObject devices = data.getJSONObject("devices");
-                            JSONArray items = devices.getJSONArray("items");
+                            // Vérifier le statut de la réponse
+                            String status = jsonResponse.optString("status", "");
+                            if (!"OK".equals(status)) {
+                                errorCallback.onError("Réponse non OK: " + jsonResponse.optString("message", "Erreur inconnue"));
+                                return;
+                            }
+
+                            // Accéder aux données des appareils
+                            JSONObject data = jsonResponse.optJSONObject("data");
+                            if (data == null) {
+                                errorCallback.onError("Données absentes dans la réponse");
+                                return;
+                            }
+
+                            JSONObject devices = data.optJSONObject("devices");
+                            if (devices == null) {
+                                errorCallback.onError("Liste des appareils absente");
+                                return;
+                            }
+
+                            JSONArray items = devices.optJSONArray("items");
+                            if (items == null) {
+                                errorCallback.onError("Tableau des appareils absent");
+                                return;
+                            }
 
                             List<DeviceListFragment.Device> deviceList = new ArrayList<>();
                             for (int i = 0; i < items.length(); i++) {
-                                JSONObject item = items.getJSONObject(i);
+                                JSONObject item = items.optJSONObject(i);
+                                if (item == null) continue; // Ignorer les éléments invalides
+
                                 DeviceListFragment.Device device = new DeviceListFragment.Device();
                                 device.setId(item.optInt("id", -1));
                                 device.setName(item.optString("description", "Sans nom"));
                                 device.setNumber(item.optString("number", "Inconnu"));
                                 device.setStatus(getStatusFromCode(item.optString("statusCode")));
                                 device.setLastOnline(convertTimestamp(item.optLong("lastUpdate")));
-                                device.setModel(item.optJSONObject("info").optString("model", "Inconnu"));
+
+                                // Gérer le champ info de manière sécurisée
+                                JSONObject info = item.optJSONObject("info");
+                                device.setModel(info != null ? info.optString("model", "Inconnu") : "Inconnu");
+
                                 deviceList.add(device);
                             }
+
                             successCallback.onDeviceList(deviceList);
                         } catch (Exception e) {
-                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
-                            errorCallback.onError("Format de réponse invalide");
+                            Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
+                            errorCallback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
                         String errorMessage = "Erreur serveur: " + response.code();

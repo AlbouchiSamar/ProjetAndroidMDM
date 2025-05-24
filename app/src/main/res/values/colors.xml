@@ -40,6 +40,8 @@
     <color name="enrolled_color">#FF4CAF50</color>
     <color name="last_month_color">#FFFF9800</color>
     <color name="chart_color">#FF4CAF50</color>
+    <color name="colorOnline">#00FF00</color>
+    <color name="colorOffline">#FF0000</color>
 
 
 
