@@ -2,53 +2,55 @@ package com.hmdm.launcher.ui.Admin;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import com.hmdm.launcher.R;
+import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.server.ServerApi;
 import com.hmdm.launcher.server.ServerServiceImpl;
 import com.hmdm.launcher.ui.Admin.adapter.DeviceListAdapter;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class DeviceListFragment extends Fragment implements DeviceListAdapter.OnDeviceClickListener {
-
+    private static final String TAG = "DeviceListFragment";
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar progressBar;
     private TextView emptyView;
-
+    private SearchView searchView;
     private DeviceListAdapter adapter;
+    private List<Device> allDevices = new ArrayList<>();
     private List<Device> devices = new ArrayList<>();
-
     private ServerApi serverService;
+    private SettingsHelper settingsHelper;
     private boolean isLoading = false;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView appelé");
         View view = inflater.inflate(R.layout.fragment_device_list, container, false);
-
         serverService = new ServerServiceImpl(requireContext());
-
+        settingsHelper = SettingsHelper.getInstance(requireContext());
         initViews(view);
         setupRecyclerView();
-
+        setupSearchView();
         loadDevices();
-
         return view;
     }
 
@@ -57,7 +59,8 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh);
         progressBar = view.findViewById(R.id.progress_bar);
         emptyView = view.findViewById(R.id.empty_view);
-
+        searchView = view.findViewById(R.id.search_view);
+        Log.d(TAG, "Vues initialisées: searchView=" + (searchView != null) + ", recyclerView=" + (recyclerView != null) + ", progressBar=" + (progressBar != null));
         swipeRefreshLayout.setOnRefreshListener(this::loadDevices);
     }
 
@@ -65,29 +68,74 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         adapter = new DeviceListAdapter(devices, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
+        Log.d(TAG, "RecyclerView initialisé: Adapter=" + (adapter != null) + ", LayoutManager=" + (recyclerView.getLayoutManager() != null));
     }
 
+    private void setupSearchView() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Log.d(TAG, "Recherche soumise: " + query);
+                filterDevices(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                Log.d(TAG, "Recherche modifiée: " + newText);
+                filterDevices(newText);
+                return true;
+            }
+        });
+        searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
+            Log.d(TAG, "SearchView focus changé: " + hasFocus);
+        });
+        searchView.requestFocus();
+    }
 
     private void loadDevices() {
-        if (isLoading) return; // Ignorer si un chargement est en cours
+        if (isLoading) return;
         isLoading = true;
         showProgress(true);
+        serverService.getDevices(
+                deviceList -> {
+                    requireActivity().runOnUiThread(() -> {
+                        allDevices.clear();
+                        allDevices.addAll(deviceList);
+                        Log.d(TAG, "Appareils chargés: " + allDevices.size());
+                        for (Device device : allDevices) {
+                            Log.d(TAG, "Appareil: ID=" + device.getId() + ", Number=" + device.getNumber() + ", Name=" + device.getName());
+                        }
+                        adapter.updateDevices(allDevices);
+                        showProgress(false);
+                        updateEmptyView();
+                        isLoading = false;
+                    });
+                },
+                error -> {
+                    requireActivity().runOnUiThread(() -> {
+                        showProgress(false);
+                        Toast.makeText(requireContext(), "Erreur lors du chargement des appareils: " + error, Toast.LENGTH_LONG).show();
+                        updateEmptyView();
+                        isLoading = false;
+                    });
+                }
+        );
+    }
 
-        serverService.getDevices(deviceList -> {
-            requireActivity().runOnUiThread(() -> {
-                adapter.updateDevices(deviceList); // Utiliser la méthode de l'adaptateur
-                showProgress(false);
-                updateEmptyView();
-                isLoading = false;
-            });
-        }, error -> {
-            requireActivity().runOnUiThread(() -> {
-                showProgress(false);
-                Toast.makeText(requireContext(), "Erreur lors du chargement des appareils: " + error, Toast.LENGTH_LONG).show();
-                updateEmptyView();
-                isLoading = false;
-            });
-        });
+    private void filterDevices(String query) {
+        Log.d(TAG, "Filtrage avec query: " + query);
+        List<Device> filteredList = new ArrayList<>();
+        for (Device device : allDevices) {
+            String id = String.valueOf(device.getId());
+            if (TextUtils.isEmpty(query) || id.contains(query)) {
+                filteredList.add(device);
+                Log.d(TAG, "Appareil inclus: ID=" + device.getId() + ", Number=" + device.getNumber() + ", Name=" + device.getName());
+            }
+        }
+        Log.d(TAG, "Résultats filtrés: " + filteredList.size());
+        adapter.updateDevices(filteredList);
+        updateEmptyView();
     }
 
     private void showProgress(boolean show) {
@@ -112,16 +160,51 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
 
     @Override
     public void onDeviceClick(Device device) {
-        // Ouvrir l'écran de détails de l'appareil
-        Intent intent = new Intent(requireContext(), LogsFragment.class);
-        intent.putExtra("device_number", device.getNumber());
-        startActivity(intent);
+        if (!isAdded() || getActivity() == null) {
+            Log.w(TAG, "Fragment détaché, dialogue ignoré");
+            return;
+        }
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Confirmer la suppression")
+                .setMessage("Voulez-vous vraiment supprimer " + device.getName() + " (ID: " + device.getId() + ") ?")
+                .setPositiveButton("Oui", (dialog, which) -> {
+                    if (!isAdded() || getActivity() == null) {
+                        Log.w(TAG, "Fragment détaché, suppression ignorée");
+                        return;
+                    }
+                    progressBar.setVisibility(View.VISIBLE);
+                    serverService.deleteDevice(
+                            String.valueOf(device.getId()),
+                            settingsHelper.getAdminAuthToken(),
+                            message -> {
+                                if (!isAdded() || getActivity() == null) {
+                                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                                    return;
+                                }
+                                requireActivity().runOnUiThread(() -> {
+                                    progressBar.setVisibility(View.GONE);
+                                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+                                    Log.d(TAG, "Suppression réussie: " + message);
+                                    loadDevices();
+                                });
+                            },
+                            error -> {
+                                if (!isAdded() || getActivity() == null) {
+                                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                                    return;
+                                }
+                                requireActivity().runOnUiThread(() -> {
+                                    progressBar.setVisibility(View.GONE);
+                                    Toast.makeText(requireContext(), "Erreur de suppression: " + error, Toast.LENGTH_LONG).show();
+                                    Log.e(TAG, "Erreur de suppression: " + error);
+                                });
+                            }
+                    );
+                })
+                .setNegativeButton("Non", null)
+                .show();
     }
 
-
-
-    // Classe interne pour représenter un appareil
-    // Classe interne pour représenter un appareil
     public static class Device {
         private int id;
         private String number;
@@ -190,5 +273,4 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
             this.model = model;
         }
     }
-
 }

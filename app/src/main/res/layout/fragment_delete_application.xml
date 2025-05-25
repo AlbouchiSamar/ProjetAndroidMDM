@@ -5,6 +5,32 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <EditText
+        android:id="@+id/edit_device_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Entrez le numéro de l'appareil"
+        android:inputType="text"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/edit_application_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Entrez l'ID de l'application"
+        android:inputType="number"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/btn_search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rechercher"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp" />
+
     <TextView
         android:id="@+id/text_application_name"
         android:layout_width="wrap_content"
@@ -12,7 +38,23 @@
         android:textSize="18sp"
         android:textColor="@android:color/black"
         android:layout_gravity="center"
-        android:layout_marginTop="32dp" />
+        android:layout_marginBottom="16dp" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btn_uninstall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Désinstaller"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp"
+        android:enabled="false" />
 
     <Button
         android:id="@+id/btn_delete"
@@ -20,6 +62,6 @@
         android:layout_height="wrap_content"
         android:text="Supprimer"
         android:layout_gravity="center"
-        android:layout_marginTop="32dp" />
+        android:enabled="false" />
 
 </LinearLayout>

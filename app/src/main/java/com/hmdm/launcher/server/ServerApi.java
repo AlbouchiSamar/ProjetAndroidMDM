@@ -139,4 +139,13 @@ public interface ServerApi {
     }
     void uploadApplicationFile(File apkFile, FileUploadCallback successCallback, ErrorCallback errorCallback);
     void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback);
+
+    /**
+     * Interface for single application callbacks.
+     */
+    interface GetApplicationIdCallback {
+        void onSuccess(ApplicationListFragment.Application application);
+        void onError(String error);
+    }
+    void getApplicationById(int applicationId, GetApplicationIdCallback callback);
 }

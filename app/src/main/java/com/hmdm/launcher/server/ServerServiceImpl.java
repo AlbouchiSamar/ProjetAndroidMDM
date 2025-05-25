@@ -11,6 +11,7 @@ import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -59,6 +60,7 @@ public class ServerServiceImpl implements ServerApi {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(intent);
     }
+
     private String md5(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -137,7 +139,8 @@ public class ServerServiceImpl implements ServerApi {
         String authToken = settingsHelper.getAdminAuthToken();
         return authToken != null && !authToken.isEmpty();
     }
-    public String getStatusFromCode(String code) {
+
+    private String getStatusFromCode(String code) {
         switch (code) {
             case "green":
                 return "En ligne";
@@ -149,7 +152,8 @@ public class ServerServiceImpl implements ServerApi {
                 return "Inconnu";
         }
     }
-    public String convertTimestamp(long timestamp) {
+
+    private String convertTimestamp(long timestamp) {
         if (timestamp == 0) return "Jamais";
 
         Date date = new Date(timestamp);
@@ -189,17 +193,15 @@ public class ServerServiceImpl implements ServerApi {
 
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
-                        Log.d(TAG, "Réponse brute: " + responseBody); // Ajouter ce log
+                        Log.d(TAG, "Réponse brute: " + responseBody);
                         try {
                             JSONObject jsonResponse = new JSONObject(responseBody);
-                            // Vérifier le statut de la réponse
                             String status = jsonResponse.optString("status", "");
                             if (!"OK".equals(status)) {
                                 errorCallback.onError("Réponse non OK: " + jsonResponse.optString("message", "Erreur inconnue"));
                                 return;
                             }
 
-                            // Accéder aux données des appareils
                             JSONObject data = jsonResponse.optJSONObject("data");
                             if (data == null) {
                                 errorCallback.onError("Données absentes dans la réponse");
@@ -221,7 +223,7 @@ public class ServerServiceImpl implements ServerApi {
                             List<DeviceListFragment.Device> deviceList = new ArrayList<>();
                             for (int i = 0; i < items.length(); i++) {
                                 JSONObject item = items.optJSONObject(i);
-                                if (item == null) continue; // Ignorer les éléments invalides
+                                if (item == null) continue;
 
                                 DeviceListFragment.Device device = new DeviceListFragment.Device();
                                 device.setId(item.optInt("id", -1));
@@ -230,7 +232,6 @@ public class ServerServiceImpl implements ServerApi {
                                 device.setStatus(getStatusFromCode(item.optString("statusCode")));
                                 device.setLastOnline(convertTimestamp(item.optLong("lastUpdate")));
 
-                                // Gérer le champ info de manière sécurisée
                                 JSONObject info = item.optJSONObject("info");
                                 device.setModel(info != null ? info.optString("model", "Inconnu") : "Inconnu");
 
@@ -257,8 +258,9 @@ public class ServerServiceImpl implements ServerApi {
             errorCallback.onError("Erreur interne: " + e.getMessage());
         }
     }
+
     @Override
-    public void deleteDevice(String deviceId, String token, DeleteDeviceCallback successCallback, ErrorCallback errorCallback) {
+    public void deleteDevice(String deviceId, String token, ServerApi.DeleteDeviceCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         if (token == null || token.isEmpty()) {
             Log.e(TAG, "Token d'authentification manquant");
             errorCallback.onError("Token d'authentification manquant");
@@ -313,20 +315,19 @@ public class ServerServiceImpl implements ServerApi {
             errorCallback.onError("Erreur interne : " + e.getMessage());
         }
     }
+
     @Override
     public void getApplications(ServerApi.ApplicationListCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         try {
             String url = settingsHelper.getBaseUrl() + "/rest/private/applications/search";
             String token = settingsHelper.getAdminAuthToken();
 
-            // Vérifier si le token est valide
             if (token == null || token.isEmpty()) {
                 redirectToLogin();
                 errorCallback.onError("Token d'authentification manquant");
                 return;
             }
 
-            // Construire une requête GET
             Request request = new Request.Builder()
                     .url(url)
                     .get()
@@ -390,6 +391,7 @@ public class ServerServiceImpl implements ServerApi {
             errorCallback.onError("Erreur interne: " + e.getMessage());
         }
     }
+
     @Override
     public void getDeviceDetails(String deviceNumber, ServerApi.DeviceCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         try {
@@ -451,7 +453,7 @@ public class ServerServiceImpl implements ServerApi {
     }
 
     @Override
-    public void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback) {
+    public void getConfigurations(ServerApi.ConfigurationListCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         try {
             String url = settingsHelper.getBaseUrl() + "/rest/private/configurations/search";
             String token = settingsHelper.getAdminAuthToken();
@@ -531,78 +533,6 @@ public class ServerServiceImpl implements ServerApi {
         }
     }
 
-
-
-   /* @Override
-    public void getLogs(String deviceNumber, ServerApi.SuccessCallback<List<LogsFragment.LogEntry>> successCallback, ServerApi.ErrorCallback errorCallback) {
-        try {
-            String url;
-            if (deviceNumber != null) {
-                url = settingsHelper.getBaseUrl() + "/rest/public/admin/devices/" + deviceNumber + "/logs";
-            } else {
-                url = settingsHelper.getBaseUrl() + "/rest/public/admin/logs";
-            }
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + settingsHelper.getAdminAuthToken())
-                    .get()
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de la récupération des logs", e);
-                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.code() == 401) {
-                        redirectToLogin();
-                        errorCallback.onError("Session expirée");
-                        return;
-                    }
-                    if (response.isSuccessful()) {
-                        String responseBody = response.body().string();
-                        try {
-                            JSONObject jsonResponse = new JSONObject(responseBody);
-                            JSONArray logsArray = jsonResponse.optJSONArray("logs");
-
-                            List<LogsFragment.LogEntry> logList = new ArrayList<>();
-                            if (logsArray != null) {
-                                for (int i = 0; i < logsArray.length(); i++) {
-                                    JSONObject logJson = logsArray.getJSONObject(i);
-                                    LogsFragment.LogEntry logEntry = new LogsFragment.LogEntry();
-                                    logEntry.setTimestamp(logJson.optLong("timestamp"));
-                                    logEntry.setLevel(logJson.optString("level"));
-                                    logEntry.setMessage(logJson.optString("message"));
-                                    logList.add(logEntry);
-                                }
-                            }
-
-                            successCallback.onSuccess(logList);
-                        } catch (Exception e) {
-                            Log.e(TAG, "Erreur lors du parsing des logs", e);
-                            errorCallback.onError("Format de réponse invalide");
-                        }
-                    } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
-                        Log.e(TAG, "Échec de la récupération des logs: " + errorMessage);
-                        errorCallback.onError(errorMessage);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            errorCallback.onError("Erreur interne: " + e.getMessage());
-        }
-    }*/
-
-
     @Override
     public void uninstallApp(String deviceNumber, String packageName, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         try {
@@ -650,8 +580,8 @@ public class ServerServiceImpl implements ServerApi {
         }
     }
 
- @Override
-    public void getDeviceStats(String token, DeviceStatsCallback successCallback, ErrorCallback errorCallback) {
+    @Override
+    public void getDeviceStats(String token, ServerApi.DeviceStatsCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         if (token == null || token.isEmpty()) {
             errorCallback.onError("Token d'authentification manquant");
             return;
@@ -693,8 +623,9 @@ public class ServerServiceImpl implements ServerApi {
             }
         });
     }
+
     @Override
-    public void deleteApplication(int applicationId, SuccessCallback successCallback, ErrorCallback errorCallback) {
+    public void deleteApplication(int applicationId, ServerApi.SuccessCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         try {
             String url = settingsHelper.getBaseUrl() + "/rest/private/applications/" + applicationId;
             String token = settingsHelper.getAdminAuthToken();
@@ -764,8 +695,9 @@ public class ServerServiceImpl implements ServerApi {
             errorCallback.onError("Erreur interne: " + e.getMessage());
         }
     }
+
     @Override
-    public void uploadApplicationFile(File apkFile, FileUploadCallback successCallback, ErrorCallback errorCallback) {
+    public void uploadApplicationFile(File apkFile, ServerApi.FileUploadCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         try {
             String url = settingsHelper.getBaseUrl() + "/rest/private/web-ui-files";
             String token = settingsHelper.getAdminAuthToken();
@@ -827,7 +759,6 @@ public class ServerServiceImpl implements ServerApi {
                             String name = fileDetails.optString("name", "Sans nom");
                             String version = fileDetails.optString("version", "Inconnue");
 
-                            // Vérifier si les champs essentiels sont présents
                             if (pkg.equals("Inconnu") || name.equals("Sans nom")) {
                                 Log.w(TAG, "Certains détails du fichier sont manquants dans la réponse");
                             }
@@ -857,6 +788,72 @@ public class ServerServiceImpl implements ServerApi {
         } catch (Exception e) {
             Log.e(TAG, "Erreur lors de la préparation de la requête de téléversement", e);
             errorCallback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void getApplicationById(int applicationId, ServerApi.GetApplicationIdCallback callback) {
+        try {
+            String url = settingsHelper.getBaseUrl() + "/rest/private/applications/" + applicationId;
+            String token = settingsHelper.getAdminAuthToken();
+
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                callback.onError("Token d'authentification manquant");
+                return;
+            }
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + token)
+                    .get()
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur connexion pour getApplicationById: " + e.getMessage());
+                    callback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse getApplicationById: " + responseBody);
+
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        callback.onError("Session expirée");
+                        return;
+                    }
+
+                    if (!response.isSuccessful()) {
+                        callback.onError("Erreur serveur: " + response.code());
+                        return;
+                    }
+
+                    try {
+                        JSONObject json = new JSONObject(responseBody);
+                        String status = json.optString("status", "");
+                        if ("OK".equals(status)) {
+                            JSONObject data = json.getJSONObject("data");
+                            ApplicationListFragment.Application app = new ApplicationListFragment.Application();
+                            app.setId(data.optInt("id"));
+                            app.setName(data.optString("name", "Sans nom"));
+                            app.setPkg(data.optString("pkg", "Inconnu"));
+                            callback.onSuccess(app);
+                        } else {
+                            callback.onError("Erreur API: " + json.optString("message", "Inconnu"));
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Erreur parsing JSON: " + e.getMessage());
+                        callback.onError("Format réponse invalide");
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur construction requête: " + e.getMessage());
+            callback.onError("Erreur interne: " + e.getMessage());
         }
     }
 }

@@ -2,6 +2,7 @@ package com.hmdm.launcher.ui.Admin.adapter;
 
 
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,9 +46,11 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
     }
 
     public void updateDevices(List<DeviceListFragment.Device> newDevices) {
+        Log.d("DeviceListAdapter", "Mise à jour des appareils: " + newDevices.size());
         this.devices.clear();
         this.devices.addAll(newDevices);
         notifyDataSetChanged();
+        Log.d("DeviceListAdapter", "notifyDataSetChanged appelé");
     }
 
     public interface OnDeviceClickListener {
