@@ -85,6 +85,8 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
             loadFragment(new AddApplicationFragment());
         }else if (id == R.id.nav_wipe_data) {
             loadFragment(new DeleteApplicationFragment());
+        }else if (id == R.id.nav_remote_control) {
+            loadFragment(new DeviceDeleteFragment());
         }else if (id == R.id.nav_logout) {
             logout();
         }/*else if (id == R.id.nav_add_device) {

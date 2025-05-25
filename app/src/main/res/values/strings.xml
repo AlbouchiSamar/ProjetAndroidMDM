@@ -209,9 +209,7 @@
         <item>USER_DATA</item>
     </string-array>
 
-    <!-- Colors -->
-    <color name="colorOnline">#4CAF50</color>
-    <color name="colorOffline">#F44336</color>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
     <string name="no_configurations_found" translatable="false">Non configuration trouvee\n</string>
@@ -235,13 +233,13 @@
     <string name="logs" translatable="false">logs\n</string>
     <string name="configurations" translatable="false">Configurations</string>
     <string name="remote_control" translatable="false">Remote Control</string>
-    <string name="add_device_description">Add devive description</string>
-    <string name="select_configuration">Select configuration</string>
-    <string name="add_device">Add device</string>
-    <string name="Model">Model\n</string>
-    <string name="Lastupdate">Last Update</string>
-    <string name="list_des_appareils">List des Appareils</string>
-    <string name="list_des_applications">Application List</string>
+    <string name="add_device_description" translatable="false">Add devive description</string>
+    <string name="select_configuration" translatable="false">Select configuration</string>
+    <string name="add_device" translatable="false">Add device</string>
+    <string name="Model" translatable="false">Model\n</string>
+    <string name="Lastupdate" translatable="false">Last Update</string>
+    <string name="list_des_appareils" translatable="false">List des Appareils</string>
+    <string name="list_des_applications" translatable="false">Application List</string>
 
 
 </resources><!-- Entrées à ajouter dans res/values/strings.xml -->
