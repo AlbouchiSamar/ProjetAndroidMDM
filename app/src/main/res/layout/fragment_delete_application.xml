@@ -6,15 +6,6 @@
     android:padding="16dp">
 
     <EditText
-        android:id="@+id/edit_device_number"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Entrez le numéro de l'appareil"
-        android:inputType="text"
-        android:layout_marginBottom="16dp"
-        android:textSize="16sp" />
-
-    <EditText
         android:id="@+id/edit_application_id"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -46,15 +37,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:visibility="gone" />
-
-    <Button
-        android:id="@+id/btn_uninstall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Désinstaller"
-        android:layout_gravity="center"
-        android:layout_marginBottom="16dp"
-        android:enabled="false" />
 
     <Button
         android:id="@+id/btn_delete"

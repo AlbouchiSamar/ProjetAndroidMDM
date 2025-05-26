@@ -77,9 +77,8 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
             loadFragment(new DeviceStatsFragment());
 
         }
-       else if (id == R.id.nav_logs) {
-            loadFragment(new LogsFragment());
-        }else if (id == R.id.nav_devices_list) {
+
+        else if (id == R.id.nav_devices_list) {
             loadFragment(new ApplicationListFragment());
         }else if (id == R.id.nav_geozones) {
             loadFragment(new AddApplicationFragment());
@@ -89,10 +88,10 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
             loadFragment(new DeviceDeleteFragment());
         }else if (id == R.id.nav_logout) {
             logout();
-        }/*else if (id == R.id.nav_add_device) {
-            Intent intent = new Intent(this, AddDeviceActivity.class);
-            startActivity(intent);
-        }*/
+        }else if (id == R.id.nav_logs) {
+            loadFragment(new FileListFragment());
+
+        }
 
 
         drawerLayout.closeDrawer(GravityCompat.START);

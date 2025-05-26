@@ -3,6 +3,7 @@ package com.hmdm.launcher.server;
 import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
+import com.hmdm.launcher.ui.Admin.FileListFragment;
 
 import org.json.JSONObject;
 
@@ -148,4 +149,8 @@ public interface ServerApi {
         void onError(String error);
     }
     void getApplicationById(int applicationId, GetApplicationIdCallback callback);
+    interface FileListCallback {
+        void onFileList(List<FileListFragment.FileItem> files);
+    }
+    void getFiles(FileListCallback successCallback, ErrorCallback errorCallback);
 }
