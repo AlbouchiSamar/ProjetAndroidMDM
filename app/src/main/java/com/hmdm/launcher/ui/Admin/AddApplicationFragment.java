@@ -59,12 +59,22 @@ public class AddApplicationFragment extends Fragment {
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                         Uri uri = result.getData().getData();
-                        if (uri != null && uri.toString().toLowerCase().endsWith(".apk")) {
-                            selectedFileUri = uri;
-                            statusTextView.setText("Fichier sélectionné : " + selectedFileUri.toString());
+                        if (uri != null) {
+                            Log.d(TAG, "URI sélectionné : " + uri.toString());
+                            String fileType = requireContext().getContentResolver().getType(uri);
+                            if (APK_MIME_TYPE.equals(fileType)) {
+                                selectedFileUri = uri;
+                                statusTextView.setText("Fichier sélectionné : " + getFileNameFromUri(uri));
+                            } else {
+                                Toast.makeText(requireContext(), "Veuillez sélectionner un fichier APK valide", Toast.LENGTH_SHORT).show();
+                                selectedFileUri = null;
+                            }
                         } else {
-                            Toast.makeText(requireContext(), "Veuillez sélectionner un fichier APK valide", Toast.LENGTH_SHORT).show();
+                            Log.e(TAG, "URI est null après sélection");
+                            Toast.makeText(requireContext(), "Aucun fichier sélectionné", Toast.LENGTH_SHORT).show();
                         }
+                    } else {
+                        Log.w(TAG, "Résultat de sélection annulé ou invalide");
                     }
                 });
     }
@@ -95,6 +105,14 @@ public class AddApplicationFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private String getFileNameFromUri(Uri uri) {
+        String fileName = uri.getLastPathSegment();
+        if (fileName == null) {
+            fileName = "fichier_apk_" + System.currentTimeMillis() + ".apk";
+        }
+        return fileName;
     }
 
     private File uriToFile(Uri uri) throws IOException {
