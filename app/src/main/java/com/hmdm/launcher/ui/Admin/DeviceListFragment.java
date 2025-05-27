@@ -165,43 +165,50 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
             return;
         }
         new AlertDialog.Builder(requireContext())
-                .setTitle("Confirmer la suppression")
-                .setMessage("Voulez-vous vraiment supprimer " + device.getName() + " (ID: " + device.getId() + ") ?")
-                .setPositiveButton("Oui", (dialog, which) -> {
-                    if (!isAdded() || getActivity() == null) {
-                        Log.w(TAG, "Fragment détaché, suppression ignorée");
-                        return;
+                .setTitle("Options pour " + device.getName())
+                .setItems(new String[]{"Modifier", "Supprimer"}, (dialog, which) -> {
+                    if (which == 0) {
+                        // Modifier: Naviguer vers ModifyDeviceFragment
+                        Fragment fragment = new ModifyDeviceFragment();
+                        Bundle args = new Bundle();
+                        args.putInt("deviceId", device.getId());
+                        fragment.setArguments(args);
+                        requireActivity().getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.fragment_container, fragment)
+                                .addToBackStack(null)
+                                .commit();
+                        Toast.makeText(requireContext(), "Navigation vers la modification de l'appareil ID: " + device.getId(), Toast.LENGTH_SHORT).show();
+                    } else if (which == 1) {
+                        // Supprimer: Afficher la boîte de dialogue de confirmation
+                        new AlertDialog.Builder(requireContext())
+                                .setTitle("Confirmer la suppression")
+                                .setMessage("Voulez-vous vraiment supprimer " + device.getName() + " (ID: " + device.getId() + ") ?")
+                                .setPositiveButton("Oui", (dialog1, which1) -> {
+                                    progressBar.setVisibility(View.VISIBLE);
+                                    serverService.deleteDevice(
+                                            String.valueOf(device.getId()),
+                                            settingsHelper.getAdminAuthToken(),
+                                            message -> {
+                                                requireActivity().runOnUiThread(() -> {
+                                                    progressBar.setVisibility(View.GONE);
+                                                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+                                                    Log.d(TAG, "Suppression réussie: " + message);
+                                                    loadDevices();
+                                                });
+                                            },
+                                            error -> {
+                                                requireActivity().runOnUiThread(() -> {
+                                                    progressBar.setVisibility(View.GONE);
+                                                    Toast.makeText(requireContext(), "Erreur de suppression: " + error, Toast.LENGTH_LONG).show();
+                                                    Log.e(TAG, "Erreur de suppression: " + error);
+                                                });
+                                            }
+                                    );
+                                })
+                                .setNegativeButton("Non", null)
+                                .show();
                     }
-                    progressBar.setVisibility(View.VISIBLE);
-                    serverService.deleteDevice(
-                            String.valueOf(device.getId()),
-                            settingsHelper.getAdminAuthToken(),
-                            message -> {
-                                if (!isAdded() || getActivity() == null) {
-                                    Log.w(TAG, "Fragment détaché, callback ignoré");
-                                    return;
-                                }
-                                requireActivity().runOnUiThread(() -> {
-                                    progressBar.setVisibility(View.GONE);
-                                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
-                                    Log.d(TAG, "Suppression réussie: " + message);
-                                    loadDevices();
-                                });
-                            },
-                            error -> {
-                                if (!isAdded() || getActivity() == null) {
-                                    Log.w(TAG, "Fragment détaché, callback ignoré");
-                                    return;
-                                }
-                                requireActivity().runOnUiThread(() -> {
-                                    progressBar.setVisibility(View.GONE);
-                                    Toast.makeText(requireContext(), "Erreur de suppression: " + error, Toast.LENGTH_LONG).show();
-                                    Log.e(TAG, "Erreur de suppression: " + error);
-                                });
-                            }
-                    );
                 })
-                .setNegativeButton("Non", null)
                 .show();
     }
 
@@ -212,65 +219,34 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         private String status;
         private String lastOnline;
         private String model;
+        private int configurationId;
 
         public Device() {
         }
 
-        public Device(int id, String number, String name, String status, String lastOnline, String model) {
+        public Device(int id, String number, String name, String status, String lastOnline, String model, int configurationId) {
             this.id = id;
             this.number = number;
             this.name = name;
             this.status = status;
             this.lastOnline = lastOnline;
             this.model = model;
+            this.configurationId = configurationId;
         }
 
-        public int getId() {
-            return id;
-        }
-
-        public void setId(int id) {
-            this.id = id;
-        }
-
-        public String getNumber() {
-            return number;
-        }
-
-        public void setNumber(String number) {
-            this.number = number;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
-        }
-
-        public String getLastOnline() {
-            return lastOnline;
-        }
-
-        public void setLastOnline(String lastOnline) {
-            this.lastOnline = lastOnline;
-        }
-
-        public String getModel() {
-            return model;
-        }
-
-        public void setModel(String model) {
-            this.model = model;
-        }
+        public int getId() { return id; }
+        public void setId(int id) { this.id = id; }
+        public String getNumber() { return number; }
+        public void setNumber(String number) { this.number = number; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+        public String getLastOnline() { return lastOnline; }
+        public void setLastOnline(String lastOnline) { this.lastOnline = lastOnline; }
+        public String getModel() { return model; }
+        public void setModel(String model) { this.model = model; }
+        public int getConfigurationId() { return configurationId; }
+        public void setConfigurationId(int configurationId) { this.configurationId = configurationId; }
     }
 }

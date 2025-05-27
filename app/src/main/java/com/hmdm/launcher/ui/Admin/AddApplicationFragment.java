@@ -1,5 +1,6 @@
 package com.hmdm.launcher.ui.Admin;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,139 +14,220 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.server.ServerApi;
 import com.hmdm.launcher.server.ServerServiceImpl;
-
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class AddApplicationFragment extends Fragment {
     private static final String TAG = "AddApplicationFragment";
+    private static final int DEFAULT_VERSION_CODE = 0;
+    private static final String DEFAULT_ARCH = "unknown";
+    private static final String APK_MIME_TYPE = "application/vnd.android.package-archive";
 
-    private TextView textSelectedFile;
-    private Button btnSelectFile;
-    private Button btnAdd;
+    private Button selectFileButton, uploadButton;
+    private TextView statusTextView;
     private ProgressBar progressBar;
-    private File selectedFile;
-    private ServerApi serverService;
+    private Uri selectedFileUri;
+    private ServerApi serverApi;
     private SettingsHelper settingsHelper;
-
-    private final ActivityResultLauncher<String> filePickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.GetContent(),
-            uri -> {
-                if (uri != null) {
-                    handleFileSelection(uri);
-                }
-            }
-    );
+    private ActivityResultLauncher<Intent> filePickerLauncher;
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         settingsHelper = SettingsHelper.getInstance(requireContext());
-        serverService = new ServerServiceImpl(requireContext());
+        serverApi = new ServerServiceImpl(requireContext());
+
+        // Vérifier l'authentification
+        String token = settingsHelper.getAdminAuthToken();
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(requireContext(), "Veuillez vous connecter en tant qu'administrateur", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(requireContext(), AdminLoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            return;
+        }
+
+        filePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri uri = result.getData().getData();
+                        if (uri != null && uri.toString().toLowerCase().endsWith(".apk")) {
+                            selectedFileUri = uri;
+                            statusTextView.setText("Fichier sélectionné : " + selectedFileUri.toString());
+                        } else {
+                            Toast.makeText(requireContext(), "Veuillez sélectionner un fichier APK valide", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_add_application, container, false);
 
-        textSelectedFile = view.findViewById(R.id.text_selected_file);
-        btnSelectFile = view.findViewById(R.id.btn_select_file);
-        btnAdd = view.findViewById(R.id.btn_add);
+        selectFileButton = view.findViewById(R.id.select_file_button);
+        uploadButton = view.findViewById(R.id.upload_button);
+        statusTextView = view.findViewById(R.id.status_text);
         progressBar = view.findViewById(R.id.progress_bar);
 
-        btnSelectFile.setOnClickListener(v -> openFilePicker());
-        btnAdd.setOnClickListener(v -> addApplication());
+        progressBar.setVisibility(View.GONE);
+
+        selectFileButton.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType(APK_MIME_TYPE);
+            filePickerLauncher.launch(intent);
+        });
+
+        uploadButton.setOnClickListener(v -> {
+            if (selectedFileUri != null) {
+                uploadApk();
+            } else {
+                Toast.makeText(requireContext(), "Veuillez sélectionner un fichier APK", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return view;
     }
 
-    private void openFilePicker() {
-        filePickerLauncher.launch("application/vnd.android.package-archive");
-    }
-
-    private File getFileFromUri(Uri uri) {
-        try (InputStream inputStream = getContext().getContentResolver().openInputStream(uri)) {
-            File tempFile = File.createTempFile("upload", ".apk", getContext().getCacheDir());
-            try (OutputStream outputStream = new FileOutputStream(tempFile)) {
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = inputStream.read(buffer)) > 0) {
-                    outputStream.write(buffer, 0, length);
-                }
+    private File uriToFile(Uri uri) throws IOException {
+        File tempFile = new File(requireContext().getCacheDir(), "temp_apk_" + System.currentTimeMillis() + ".apk");
+        try (InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+             FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
             }
-            return tempFile;
-        } catch (IOException e) {
-            Log.e(TAG, "Erreur lors de la conversion du URI en fichier", e);
-            return null;
         }
+        return tempFile;
     }
 
-    private void handleFileSelection(Uri uri) {
-        try {
-            selectedFile = getFileFromUri(uri);
-            if (selectedFile != null && selectedFile.exists()) {
-                textSelectedFile.setText("Fichier sélectionné : " + selectedFile.getName());
-            } else {
-                selectedFile = null;
-                textSelectedFile.setText("Aucun fichier sélectionné");
-                Toast.makeText(getContext(), "Fichier introuvable", Toast.LENGTH_SHORT).show();
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la sélection du fichier", e);
-            selectedFile = null;
-            textSelectedFile.setText("Aucun fichier sélectionné");
-            Toast.makeText(getContext(), "Erreur lors de la sélection du fichier", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void addApplication() {
-        if (getContext() == null) {
-            Log.e(TAG, "Contexte null, impossible d'ajouter l'application");
-            return;
-        }
-
-        if (selectedFile == null) {
-            Toast.makeText(getContext(), "Veuillez sélectionner un fichier APK", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Désactiver le bouton et afficher la barre de progression
-        btnAdd.setEnabled(false);
+    private void uploadApk() {
         progressBar.setVisibility(View.VISIBLE);
+        statusTextView.setText("Téléversement en cours...");
 
-        serverService.uploadApplicationFile(
-                selectedFile,
-                (serverPath, pkg, name, version) -> getActivity().runOnUiThread(() -> {
-                    if (getContext() == null) return;
-                    Toast.makeText(getContext(), "Application ajoutée : " + name + " (" + pkg + ")", Toast.LENGTH_SHORT).show();
-                    textSelectedFile.setText("Aucun fichier sélectionné");
-                    if (selectedFile != null) {
-                        selectedFile.delete(); // Supprimer le fichier temporaire
-                        selectedFile = null;
-                    }
-                    btnAdd.setEnabled(true);
+        try {
+            File apkFile = uriToFile(selectedFileUri);
+            serverApi.uploadApplicationFile(apkFile, (serverPath, pkg, name, version) -> {
+                if (!isAdded() || getActivity() == null) {
+                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                    return;
+                }
+                requireActivity().runOnUiThread(() -> {
+                    statusTextView.setText("Upload réussi : " + serverPath);
+                    validatePackage(pkg, name, version, DEFAULT_VERSION_CODE, DEFAULT_ARCH, serverPath);
+                });
+            }, error -> {
+                if (!isAdded() || getActivity() == null) {
+                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                    return;
+                }
+                requireActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    if (getActivity() != null) {
-                        getActivity().getSupportFragmentManager().popBackStack();
+                    statusTextView.setText("Erreur upload : " + error);
+                });
+            });
+        } catch (IOException e) {
+            progressBar.setVisibility(View.GONE);
+            statusTextView.setText("Erreur lors de la conversion du fichier : " + e.getMessage());
+            Log.e(TAG, "Erreur conversion Uri en File", e);
+        }
+    }
+
+    private void validatePackage(String pkg, String name, String version, int versionCode, String arch, String url) {
+        serverApi.validatePackage(pkg, name, version, versionCode, arch, url, new ServerApi.ValidatePackageCallback() {
+            @Override
+            public void onValidatePackage(boolean isUnique, String validatedPkg) {
+                if (!isAdded() || getActivity() == null) {
+                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                    return;
+                }
+                requireActivity().runOnUiThread(() -> {
+                    if (isUnique) {
+                        statusTextView.append("\nPackage validé, aucun doublon.");
+                        createOrUpdateApp(0, validatedPkg, name, version, versionCode, arch, url);
+                    } else {
+                        progressBar.setVisibility(View.GONE);
+                        statusTextView.append("\nErreur : Le package " + validatedPkg + " existe déjà.");
                     }
-                }),
-                error -> getActivity().runOnUiThread(() -> {
-                    if (getContext() == null) return;
-                    Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Erreur lors de l'ajout de l'application : " + error);
-                    btnAdd.setEnabled(true);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                if (!isAdded() || getActivity() == null) {
+                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                    return;
+                }
+                requireActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                })
-        );
+                    statusTextView.append("\nErreur validation : " + error);
+                });
+            }
+        });
+    }
+
+    private void createOrUpdateApp(int id, String pkg, String name, String version, int versionCode, String arch, String url) {
+        serverApi.createOrUpdateApp(id, pkg, name, version, versionCode, arch, url, true, false, false, new ServerApi.CreateAppCallback() {
+            @Override
+            public void onCreateAppSuccess(String message, int applicationId) {
+                if (!isAdded() || getActivity() == null) {
+                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                    return;
+                }
+                requireActivity().runOnUiThread(() -> {
+                    statusTextView.append("\nApplication créée/mise à jour : " + message);
+                    updateConfigurations(applicationId, name);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                if (!isAdded() || getActivity() == null) {
+                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                    return;
+                }
+                requireActivity().runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    statusTextView.append("\nErreur création application : " + error);
+                });
+            }
+        });
+    }
+
+    private void updateConfigurations(int applicationId, String configName) {
+        serverApi.updateConfigurations(applicationId, configName, new ServerApi.UpdateConfigCallback() {
+            @Override
+            public void onUpdateConfigSuccess(String message) {
+                if (!isAdded() || getActivity() == null) {
+                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                    return;
+                }
+                requireActivity().runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    statusTextView.append("\nConfiguration mise à jour : " + message);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                if (!isAdded() || getActivity() == null) {
+                    Log.w(TAG, "Fragment détaché, callback ignoré");
+                    return;
+                }
+                requireActivity().runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    statusTextView.append("\nErreur configuration : " + error);
+                });
+            }
+        });
     }
 }

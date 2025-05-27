@@ -18,20 +18,19 @@ import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.server.ServerApi;
 import com.hmdm.launcher.server.ServerServiceImpl;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DeleteApplicationFragment extends Fragment {
     private static final String TAG = "DeleteApplicationFragment";
-    private EditText editDeviceNumber;
     private EditText editApplicationId;
     private TextView textApplicationName;
+    private TextView textConfigurations;
     private Button btnSearch;
-    private Button btnUninstall;
     private Button btnDelete;
     private ProgressBar progressBar;
     private int applicationId;
     private String applicationName;
-    private String packageName;
-    private String deviceNumber;
     private ServerApi serverService;
     private SettingsHelper settingsHelper;
     private boolean isOperationInProgress;
@@ -48,22 +47,20 @@ public class DeleteApplicationFragment extends Fragment {
         Log.d(TAG, "onCreateView appelé");
         View view = inflater.inflate(R.layout.fragment_delete_application, container, false);
 
-        editDeviceNumber = view.findViewById(R.id.edit_device_number);
         editApplicationId = view.findViewById(R.id.edit_application_id);
         textApplicationName = view.findViewById(R.id.text_application_name);
+        textConfigurations = view.findViewById(R.id.text_configurations);
         btnSearch = view.findViewById(R.id.btn_search);
-        btnUninstall = view.findViewById(R.id.btn_uninstall);
         btnDelete = view.findViewById(R.id.btn_delete);
         progressBar = view.findViewById(R.id.progress_bar);
 
         textApplicationName.setText("Aucune application sélectionnée");
-        btnUninstall.setEnabled(false);
+        textConfigurations.setText("Aucune configuration associée");
         btnDelete.setEnabled(false);
         progressBar.setVisibility(View.GONE);
         isOperationInProgress = false;
 
         btnSearch.setOnClickListener(v -> searchApplication());
-        btnUninstall.setOnClickListener(v -> showUninstallConfirmationDialog());
         btnDelete.setOnClickListener(v -> showDeleteConfirmationDialog());
 
         return view;
@@ -72,16 +69,12 @@ public class DeleteApplicationFragment extends Fragment {
     private void searchApplication() {
         if (isOperationInProgress) {
             Log.d(TAG, "Opération en cours, recherche ignorée");
+            Toast.makeText(requireContext(), "Opération en cours, veuillez attendre", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        deviceNumber = editDeviceNumber.getText().toString().trim();
         String idText = editApplicationId.getText().toString().trim();
 
-        if (deviceNumber.isEmpty()) {
-            Toast.makeText(requireContext(), "Veuillez entrer un numéro d'appareil", Toast.LENGTH_SHORT).show();
-            return;
-        }
         if (idText.isEmpty()) {
             Toast.makeText(requireContext(), "Veuillez entrer un ID d'application", Toast.LENGTH_SHORT).show();
             return;
@@ -98,6 +91,8 @@ public class DeleteApplicationFragment extends Fragment {
         btnSearch.setEnabled(false);
         progressBar.setVisibility(View.VISIBLE);
         textApplicationName.setText("Recherche en cours...");
+        textConfigurations.setText("Aucune configuration associée");
+        Toast.makeText(requireContext(), "Recherche de l'application ID: " + applicationId, Toast.LENGTH_SHORT).show();
 
         serverService.getApplicationById(
                 applicationId,
@@ -110,14 +105,13 @@ public class DeleteApplicationFragment extends Fragment {
                         }
                         requireActivity().runOnUiThread(() -> {
                             applicationName = application.getName();
-                            packageName = application.getPkg();
                             textApplicationName.setText("Application : " + applicationName + " (ID: " + applicationId + ")");
-                            btnUninstall.setEnabled(true);
                             btnDelete.setEnabled(true);
                             btnSearch.setEnabled(true);
                             progressBar.setVisibility(View.GONE);
                             isOperationInProgress = false;
-                            Log.d(TAG, "Application trouvée: " + applicationName + ", Pkg: " + packageName);
+                            Toast.makeText(requireContext(), "Application trouvée: " + applicationName, Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "Application trouvée: " + applicationName);
                         });
                     }
 
@@ -129,12 +123,11 @@ public class DeleteApplicationFragment extends Fragment {
                         }
                         requireActivity().runOnUiThread(() -> {
                             textApplicationName.setText("Application non trouvée (ID: " + applicationId + ")");
-                            btnUninstall.setEnabled(false);
                             btnDelete.setEnabled(false);
                             btnSearch.setEnabled(true);
                             progressBar.setVisibility(View.GONE);
                             isOperationInProgress = false;
-                            Toast.makeText(requireContext(), "Erreur: " + error, Toast.LENGTH_LONG).show();
+                            Toast.makeText(requireContext(), "Erreur lors de la recherche: " + error, Toast.LENGTH_LONG).show();
                             Log.e(TAG, "Erreur recherche application: " + error);
                         });
                     }
@@ -142,44 +135,57 @@ public class DeleteApplicationFragment extends Fragment {
         );
     }
 
-    private void showUninstallConfirmationDialog() {
+    private void showDeleteConfirmationDialog() {
         if (isOperationInProgress) {
-            Log.d(TAG, "Opération en cours, désinstallation ignorée");
+            Log.d(TAG, "Opération en cours, suppression ignorée");
+            Toast.makeText(requireContext(), "Opération en cours, veuillez attendre", Toast.LENGTH_SHORT).show();
             return;
         }
         new AlertDialog.Builder(requireContext())
-                .setTitle("Confirmation de désinstallation")
-                .setMessage("Voulez-vous désinstaller " + applicationName + " de l'appareil " + deviceNumber + " ?")
-                .setPositiveButton("Oui", (dialog, which) -> uninstallApplication())
+                .setTitle("Confirmation de suppression")
+                .setMessage("Voulez-vous supprimer l'application " + applicationName + " ? Cette action est irréversible.")
+                .setPositiveButton("Oui", (dialog, which) -> checkAndDeleteApplication())
                 .setNegativeButton("Non", (dialog, which) -> dialog.dismiss())
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }
 
-    private void uninstallApplication() {
+    private void checkAndDeleteApplication() {
         if (isOperationInProgress) {
-            Log.d(TAG, "Opération en cours, désinstallation ignorée");
+            Log.d(TAG, "Opération en cours, vérification ignorée");
+            Toast.makeText(requireContext(), "Opération en cours, veuillez attendre", Toast.LENGTH_SHORT).show();
             return;
         }
         isOperationInProgress = true;
-        btnUninstall.setEnabled(false);
         btnDelete.setEnabled(false);
+        btnSearch.setEnabled(false);
         progressBar.setVisibility(View.VISIBLE);
-        serverService.uninstallApp(
-                deviceNumber,
-                packageName,
-                () -> {
+        Toast.makeText(requireContext(), "Vérification des configurations associées...", Toast.LENGTH_SHORT).show();
+
+        serverService.getApplicationConfigurations(
+                applicationId,
+                configurations -> {
                     if (!isAdded() || getActivity() == null) {
                         Log.w(TAG, "Fragment détaché, callback ignoré");
                         return;
                     }
                     requireActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), "Application désinstallée avec succès", Toast.LENGTH_SHORT).show();
-                        btnUninstall.setEnabled(true);
-                        btnDelete.setEnabled(true);
-                        progressBar.setVisibility(View.GONE);
-                        isOperationInProgress = false;
-                        Log.d(TAG, "Désinstallation réussie: " + packageName + " sur " + deviceNumber);
+                        if (configurations.isEmpty()) {
+                            textConfigurations.setText("Aucune configuration associée");
+                            Toast.makeText(requireContext(), "Aucune configuration associée, suppression en cours...", Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "Aucune configuration associée, suppression directe");
+                            deleteApplication();
+                        } else {
+                            StringBuilder configNames = new StringBuilder("Configurations associées : ");
+                            for (ApplicationConfiguration config : configurations) {
+                                configNames.append(config.getConfigurationName()).append(", ");
+                            }
+                            String configText = configNames.toString();
+                            textConfigurations.setText(configText.substring(0, configText.length() - 2)); // Supprime la dernière virgule
+                            Toast.makeText(requireContext(), "Configurations associées trouvées: " + configurations.size(), Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "Configurations associées trouvées: " + configurations.size());
+                            updateConfigurations(configurations);
+                        }
                     });
                 },
                 error -> {
@@ -188,40 +194,58 @@ public class DeleteApplicationFragment extends Fragment {
                         return;
                     }
                     requireActivity().runOnUiThread(() -> {
-                        btnUninstall.setEnabled(true);
                         btnDelete.setEnabled(true);
+                        btnSearch.setEnabled(true);
                         progressBar.setVisibility(View.GONE);
                         isOperationInProgress = false;
-                        Toast.makeText(requireContext(), "Erreur: " + error, Toast.LENGTH_LONG).show();
-                        Log.e(TAG, "Erreur désinstallation: " + error);
+                        Toast.makeText(requireContext(), "Erreur lors de la vérification des configurations: " + error, Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Erreur vérification configurations: " + error);
                     });
                 }
         );
     }
 
-    private void showDeleteConfirmationDialog() {
-        if (isOperationInProgress) {
-            Log.d(TAG, "Opération en cours, suppression ignorée");
-            return;
+    private void updateConfigurations(List<ApplicationConfiguration> configurations) {
+        List<ApplicationConfiguration> updatedConfigs = new ArrayList<>();
+        for (ApplicationConfiguration config : configurations) {
+            updatedConfigs.add(new ApplicationConfiguration(config.getId(), config.getConfigurationId(), config.getConfigurationName(), true));
         }
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Confirmation de suppression")
-                .setMessage("Voulez-vous supprimer l'application " + applicationName + " ? Cette action est irréversible.")
-                .setPositiveButton("Oui", (dialog, which) -> deleteApplication())
-                .setNegativeButton("Non", (dialog, which) -> dialog.dismiss())
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
+
+        ServerApi.ApplicationConfigurationsUpdateRequest request = new ServerApi.ApplicationConfigurationsUpdateRequest(applicationId, updatedConfigs);
+
+        Toast.makeText(requireContext(), "Mise à jour des configurations (marquer pour suppression)...", Toast.LENGTH_SHORT).show();
+        serverService.updateApplicationConfigurations(
+                request,
+                () -> {
+                    if (!isAdded() || getActivity() == null) {
+                        Log.w(TAG, "Fragment détaché, callback ignoré");
+                        return;
+                    }
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), "Configurations mises à jour avec succès", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Configurations mises à jour, suppression de l'application");
+                        deleteApplication();
+                    });
+                },
+                error -> {
+                    if (!isAdded() || getActivity() == null) {
+                        Log.w(TAG, "Fragment détaché, callback ignoré");
+                        return;
+                    }
+                    requireActivity().runOnUiThread(() -> {
+                        btnDelete.setEnabled(true);
+                        btnSearch.setEnabled(true);
+                        progressBar.setVisibility(View.GONE);
+                        isOperationInProgress = false;
+                        Toast.makeText(requireContext(), "Erreur lors de la mise à jour des configurations: " + error, Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Erreur mise à jour configurations: " + error);
+                    });
+                }
+        );
     }
 
     private void deleteApplication() {
-        if (isOperationInProgress) {
-            Log.d(TAG, "Opération en cours, suppression ignorée");
-            return;
-        }
-        isOperationInProgress = true;
-        btnUninstall.setEnabled(false);
-        btnDelete.setEnabled(false);
-        progressBar.setVisibility(View.VISIBLE);
+        Toast.makeText(requireContext(), "Suppression de l'application ID: " + applicationId, Toast.LENGTH_SHORT).show();
         serverService.deleteApplication(
                 applicationId,
                 () -> {
@@ -243,14 +267,37 @@ public class DeleteApplicationFragment extends Fragment {
                         return;
                     }
                     requireActivity().runOnUiThread(() -> {
-                        btnUninstall.setEnabled(true);
                         btnDelete.setEnabled(true);
+                        btnSearch.setEnabled(true);
                         progressBar.setVisibility(View.GONE);
                         isOperationInProgress = false;
-                        Toast.makeText(requireContext(), "Erreur: " + error, Toast.LENGTH_LONG).show();
+                        Toast.makeText(requireContext(), "Erreur lors de la suppression: " + error, Toast.LENGTH_LONG).show();
                         Log.e(TAG, "Erreur suppression application: " + error);
                     });
                 }
         );
+    }
+
+    public static class ApplicationConfiguration {
+        private int id;
+        private int configurationId;
+        private String configurationName;
+        private boolean remove;
+
+        public ApplicationConfiguration(int id, int configurationId, String configurationName, boolean remove) {
+            this.id = id;
+            this.configurationId = configurationId;
+            this.configurationName = configurationName;
+            this.remove = remove;
+        }
+
+        public ApplicationConfiguration(int id, int configurationId, String configurationName) {
+            this(id, configurationId, configurationName, false);
+        }
+
+        public int getId() { return id; }
+        public int getConfigurationId() { return configurationId; }
+        public String getConfigurationName() { return configurationName; }
+        public boolean isRemove() { return remove; }
     }
 }

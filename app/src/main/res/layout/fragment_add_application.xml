@@ -5,34 +5,31 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/text_selected_file"
+    <Button
+        android:id="@+id/select_file_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Aucun fichier sélectionné"
-        android:layout_marginBottom="16dp" />
+        android:text="Sélectionner un APK"
+        android:layout_marginBottom="8dp" />
 
     <Button
-        android:id="@+id/btn_select_file"
-        android:layout_width="wrap_content"
+        android:id="@+id/upload_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Sélectionner un fichier APK"
-        android:layout_gravity="center"
+        android:text="Ajouter l'application"
         android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Statut : Aucun fichier sélectionné" />
 
     <ProgressBar
         android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/btn_add"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ajouter"
-        android:layout_gravity="center"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp"
+        style="?android:attr/progressBarStyleLarge" />
 
 </LinearLayout>

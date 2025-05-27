@@ -1,19 +1,14 @@
 package com.hmdm.launcher.ui.Admin.adapter;
 
-
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
-
 import java.util.List;
 
 public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.DeviceViewHolder> {
@@ -60,11 +55,11 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
     static class DeviceViewHolder extends RecyclerView.ViewHolder {
         private TextView deviceIdText;
         private TextView lastupdate;
-
         private TextView deviceNumberText;
         private TextView deviceNameText;
         private TextView statusText;
         private TextView configNameText;
+        private TextView configurationIdText;
 
         public DeviceViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -74,6 +69,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
             deviceNameText = itemView.findViewById(R.id.text_device_name);
             statusText = itemView.findViewById(R.id.text_status);
             configNameText = itemView.findViewById(R.id.text_config_name);
+            configurationIdText = itemView.findViewById(R.id.text_configuration_id);
         }
 
         public void bind(final DeviceListFragment.Device device, final OnDeviceClickListener listener) {
@@ -83,8 +79,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
             deviceNameText.setText(device.getName() != null ? device.getName() : "Sans nom");
             statusText.setText(device.getStatus() != null ? device.getStatus() : "Inconnu");
             configNameText.setText(device.getModel() != null ? device.getModel() : "Inconnu");
+            configurationIdText.setText(device.getConfigurationId() != -1 ? String.valueOf(device.getConfigurationId()) : "Inconnu");
 
-            // Définir la couleur du statut
             if ("En ligne".equals(device.getStatus())) {
                 statusText.setTextColor(itemView.getContext().getResources().getColor(R.color.colorOnline));
             } else {

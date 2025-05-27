@@ -2,6 +2,7 @@ package com.hmdm.launcher.server;
 
 import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
+import com.hmdm.launcher.ui.Admin.DeleteApplicationFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
 
 import org.json.JSONObject;
@@ -40,7 +41,11 @@ public interface ServerApi {
      * @param errorCallback Callback called with an error message on failure.
      */
     void getDevices(DeviceListCallback successCallback, ErrorCallback errorCallback);
+    interface ModifyDeviceCallback {
+        void onModifyDeviceSuccess(String message);
+    }
 
+    void modifyDevice(int deviceId, String name, String number, int configurationId, ModifyDeviceCallback successCallback, ErrorCallback errorCallback);
     /**
      * Retrieves details of a specific device.
      * @param deviceNumber Unique device number.
@@ -70,7 +75,6 @@ public interface ServerApi {
      * @param errorCallback Callback called with an error message on failure.
      */
     void uninstallApp(String deviceNumber, String packageName, SuccessCallback successCallback, ErrorCallback errorCallback);
-    void deleteApplication(int applicationId, SuccessCallback successCallback, ErrorCallback errorCallback);
 
     /**
      * Interface for success callbacks without a return value.
@@ -134,11 +138,7 @@ public interface ServerApi {
     }
 
     void getApplications(ApplicationListCallback successCallback, ErrorCallback errorCallback);
-    interface FileUploadCallback {
-        void onFileUploaded(String serverPath, String pkg, String name, String version);
-    }
-    void uploadApplicationFile(File apkFile, FileUploadCallback successCallback, ErrorCallback errorCallback);
-    void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback);
+   void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback);
 
     /**
      * Interface for single application callbacks.
@@ -148,4 +148,61 @@ public interface ServerApi {
         void onError(String error);
     }
     void getApplicationById(int applicationId, GetApplicationIdCallback callback);
+
+
+
+
+
+
+    interface FileUploadCallback {
+        void onSuccess(String serverPath, String pkg, String name, String version);
+    }
+    void uploadApplicationFile(File apkFile, FileUploadCallback successCallback, ErrorCallback errorCallback);
+    // Méthode pour valider un package
+    interface ValidatePackageCallback {
+        void onValidatePackage(boolean isUnique, String pkg);
+        void onError(String error);
+    }
+    void validatePackage(String pkg, String name, String version, int versionCode, String arch, String url, ValidatePackageCallback callback);
+
+    // Méthode pour créer ou mettre à jour une application
+    interface CreateAppCallback {
+        void onCreateAppSuccess(String message, int applicationId); // Ajout de l'applicationId
+        void onError(String error);
+    }
+    void createOrUpdateApp(int id, String pkg, String name, String version, int versionCode, String arch, String url,
+                           boolean showIcon, boolean useKiosk, boolean system, CreateAppCallback callback);
+
+    // Méthode pour mettre à jour les configurations
+    interface UpdateConfigCallback {
+        void onUpdateConfigSuccess(String message);
+        void onError(String error);
+    }
+    void updateConfigurations(int applicationId, String configName, UpdateConfigCallback callback);
+
+
+
+
+    interface ApplicationConfigurationsCallback {
+        void onApplicationConfigurations(List<DeleteApplicationFragment.ApplicationConfiguration> configurations);
+    }
+
+    class ApplicationConfigurationsUpdateRequest {
+        private int applicationId;
+        private List<DeleteApplicationFragment.ApplicationConfiguration> configurations;
+
+        public ApplicationConfigurationsUpdateRequest(int applicationId, List<DeleteApplicationFragment.ApplicationConfiguration> configurations) {
+            this.applicationId = applicationId;
+            this.configurations = configurations;
+        }
+
+        public int getApplicationId() { return applicationId; }
+        public List<DeleteApplicationFragment.ApplicationConfiguration> getConfigurations() { return configurations; }
+    }
+    void getApplicationConfigurations(int applicationId, ApplicationConfigurationsCallback successCallback, ErrorCallback errorCallback);
+    void updateApplicationConfigurations(ApplicationConfigurationsUpdateRequest request, SuccessCallback successCallback, ErrorCallback errorCallback);
+    void deleteApplication(int applicationId, SuccessCallback successCallback, ErrorCallback errorCallback);
+
+
+
 }
