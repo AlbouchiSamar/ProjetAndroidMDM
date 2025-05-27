@@ -6,7 +6,7 @@
         <item
             android:id="@+id/nav_devices"
             android:icon="@drawable/ic_devices"
-            android:title="@string/devices" />
+            android:title="@string/Devices" />
         <item
             android:id="@+id/nav_devices_list"
             android:icon="@drawable/ic_devices"
@@ -14,30 +14,30 @@
         <item
             android:id="@+id/nav_logs"
             android:icon="@drawable/ic_logs"
-            android:title="@string/logs"
+            android:title="@string/Files_List"
              />
         <item
             android:id="@+id/nav_configurations"
             android:icon="@drawable/ic_configurations"
-            android:title="@string/configurations"
+            android:title="@string/configurations_List"
              />
         <item
             android:id="@+id/nav_remote_control"
             android:icon="@drawable/ic_remote_control"
-            android:title="@string/remote_control"
+            android:title="@string/Update_Device"
             />
         <item
             android:id="@+id/nav_map"
             android:icon="@drawable/ic_map"
-            android:title="@string/map" />
+            android:title="@string/Add_application" />
         <item
             android:id="@+id/nav_geozones"
             android:icon="@drawable/ic_geozones"
-            android:title="@string/geozones" />
+            android:title="@string/Add_File" />
         <item
             android:id="@+id/nav_wipe_data"
             android:icon="@drawable/ic_wipe_data"
-            android:title="@string/wipe_data" />
+            android:title="@string/Delete_Application" />
         <item
             android:id="@+id/nav_dashboard"
             android:icon="@drawable/ic_dashboard"

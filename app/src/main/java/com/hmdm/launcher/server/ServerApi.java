@@ -4,6 +4,7 @@ import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeleteApplicationFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
+import com.hmdm.launcher.ui.Admin.FileListFragment;
 
 import org.json.JSONObject;
 
@@ -202,6 +203,7 @@ public interface ServerApi {
     void getApplicationConfigurations(int applicationId, ApplicationConfigurationsCallback successCallback, ErrorCallback errorCallback);
     void updateApplicationConfigurations(ApplicationConfigurationsUpdateRequest request, SuccessCallback successCallback, ErrorCallback errorCallback);
     void deleteApplication(int applicationId, SuccessCallback successCallback, ErrorCallback errorCallback);
+
 
 
 

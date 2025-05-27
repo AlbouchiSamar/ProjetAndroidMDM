@@ -240,6 +240,13 @@
     <string name="Lastupdate" translatable="false">Last Update</string>
     <string name="list_des_appareils" translatable="false">List des Appareils</string>
     <string name="list_des_applications" translatable="false">Application List</string>
+    <string name="Devices">Devices</string>
+    <string name="Files_List">Files List</string>
+    <string name="configurations_List">Configurations List</string>
+    <string name="Update_Device">Update Device</string>
+    <string name="Delete_Application">Delete Application</string>
+    <string name="Add_File">Add File</string>
+    <string name="Add_application">Add Application</string>
 
 
 </resources><!-- Entrées à ajouter dans res/values/strings.xml -->
