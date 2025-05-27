@@ -1313,4 +1313,92 @@ public class ServerServiceImpl implements ServerApi {
             errorCallback.onError("Erreur interne: " + e.getMessage());
         }
     }
+    @Override
+    public void getFiles(FileListCallback successCallback, ErrorCallback errorCallback) {
+        try {
+            String url = settingsHelper.getBaseUrl() + "/rest/private/files/search";
+            String token = settingsHelper.getAdminAuthToken();
+
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                errorCallback.onError("Token d'authentification manquant");
+                return;
+            }
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Authorization", "Bearer " + token)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors de la récupération des fichiers", e);
+                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        errorCallback.onError("Session expirée");
+                        return;
+                    }
+
+                    if (response.isSuccessful()) {
+                        String responseBody = response.body().string();
+                        Log.d(TAG, "Réponse brute des fichiers: " + responseBody);
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            String status = jsonResponse.optString("status", "");
+                            if (!"OK".equals(status)) {
+                                errorCallback.onError("Réponse non OK: " + jsonResponse.optString("message", "Erreur inconnue"));
+                                return;
+                            }
+
+                            JSONObject data = jsonResponse.optJSONObject("data");
+                            if (data == null) {
+                                errorCallback.onError("Données absentes dans la réponse");
+                                return;
+                            }
+
+                            JSONArray items = data.optJSONArray("items");
+                            if (items == null) {
+                                errorCallback.onError("Liste des fichiers absente");
+                                return;
+                            }
+
+                            List<FileListFragment.FileItem> fileList = new ArrayList<>();
+                            for (int i = 0; i < items.length(); i++) {
+                                JSONObject item = items.optJSONObject(i);
+                                if (item == null) continue;
+
+                                String name = item.optString("name", "Sans nom");
+                                String url = item.optString("url", "");
+                                long size = item.optLong("size", 0);
+
+                                fileList.add(new FileListFragment.FileItem(name, url, size));
+                            }
+
+                            successCallback.onFileList(fileList);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
+                            errorCallback.onError("Format de réponse invalide: " + e.getMessage());
+                        }
+                    } else {
+                        String errorMessage = "Erreur serveur: " + response.code();
+                        if (response.body() != null) {
+                            errorMessage += ", Détails: " + response.body().string();
+                        }
+                        Log.e(TAG, "Échec de la récupération des fichiers: " + errorMessage);
+                        errorCallback.onError(errorMessage);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
+            errorCallback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
 }

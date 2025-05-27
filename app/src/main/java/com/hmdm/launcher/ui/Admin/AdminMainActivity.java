@@ -92,6 +92,10 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
             loadFragment(new FileListFragment());
 
         }
+        else if (id == R.id.nav_add) {
+            loadFragment(new AddApplicationFragment());
+
+        }
 
 
         drawerLayout.closeDrawer(GravityCompat.START);

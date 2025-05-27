@@ -27,7 +27,7 @@
             android:title="@string/Update_Device"
             />
         <item
-            android:id="@+id/nav_map"
+            android:id="@+id/nav_add"
             android:icon="@drawable/ic_map"
             android:title="@string/Add_application" />
         <item

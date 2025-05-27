@@ -206,5 +206,20 @@ public interface ServerApi {
 
 
 
+    /**
+     * Interface for file list callbacks.
+     */
+    interface FileListCallback {
+        void onFileList(List<FileListFragment.FileItem> files);
+    }
+
+    /**
+     * Retrieves the list of files from the server.
+     * @param successCallback Callback called with the list of files on success.
+     * @param errorCallback Callback called with an error message on failure.
+     */
+    void getFiles(FileListCallback successCallback, ErrorCallback errorCallback);
+
+
 
 }
