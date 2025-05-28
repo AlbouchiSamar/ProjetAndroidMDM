@@ -259,7 +259,8 @@ public class AddApplicationFragment extends Fragment {
                 requireActivity().runOnUiThread(() -> {
                     Log.d(TAG, "Application créée/mise à jour avec succès - ID: " + applicationId + ", Message: " + message);
                     statusTextView.append("\nApplication créée/mise à jour : " + message);
-                    updateConfigurations(applicationId, name);
+                    // Transmettre les données nécessaires
+                    updateConfigurations(applicationId, name); // 'name' est la variable contenant le nom de l'application
                 });
             }
 

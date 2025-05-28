@@ -853,6 +853,7 @@ public class ServerServiceImpl implements ServerApi {
                 return;
             }
 
+            Log.d(TAG, "Préparation de la requête pour l'endpoint : " + endpoint);
             RequestBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("file", apkFile.getName(),
@@ -880,29 +881,61 @@ public class ServerServiceImpl implements ServerApi {
                         return;
                     }
 
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse brute du serveur : " + responseBody);
+
                     if (response.isSuccessful()) {
-                        String responseBody = response.body().string();
                         try {
                             JSONObject jsonResponse = new JSONObject(responseBody);
-                            String serverPath = jsonResponse.optString("serverPath", "");
-                            JSONObject fileDetails = jsonResponse.optJSONObject("fileDetails");
-                            if (fileDetails == null) {
-                                errorCallback.onError("Détails du fichier absents dans la réponse");
+
+                            // Vérifier la présence de "status" et qu'il est "OK"
+                            String status = jsonResponse.optString("status", "");
+                            if (!"OK".equals(status)) {
+                                Log.e(TAG, "Statut de la réponse non OK : " + status);
+                                errorCallback.onError("Statut de la réponse non OK : " + status);
                                 return;
                             }
-                            String pkg = fileDetails.optString("pkg", "");
-                            String name = fileDetails.optString("name", "");
-                            String version = fileDetails.optString("version", "");
+
+                            // Accéder à l'objet "data"
+                            JSONObject data = jsonResponse.optJSONObject("data");
+                            if (data == null) {
+                                Log.e(TAG, "Objet 'data' absent dans la réponse");
+                                errorCallback.onError("Objet 'data' absent dans la réponse");
+                                return;
+                            }
+
+                            // Extraire serverPath depuis "data"
+                            String serverPath = data.optString("serverPath", "");
+                            Log.d(TAG, "serverPath extrait : " + serverPath);
+                            if (serverPath.isEmpty()) {
+                                Log.e(TAG, "serverPath vide, upload potentiellement échoué");
+                                errorCallback.onError("Aucun chemin de fichier retourné par le serveur");
+                                return;
+                            }
+
+                            // Extraire fileDetails depuis "data"
+                            JSONObject fileDetails = data.optJSONObject("fileDetails");
+                            String pkg = "";
+                            String name = "";
+                            String version = "";
+                            if (fileDetails != null && fileDetails.length() > 0) {
+                                pkg = fileDetails.optString("pkg", "");
+                                name = fileDetails.optString("name", "");
+                                version = fileDetails.optString("version", "");
+                                Log.d(TAG, "Détails du fichier - pkg: " + pkg + ", name: " + name + ", version: " + version);
+                            } else {
+                                Log.w(TAG, "fileDetails absent ou vide dans la réponse");
+                                // Note : Si fileDetails est absent, les valeurs restent vides
+                                // Si nécessaire, on pourrait extraire les métadonnées localement ici
+                            }
+
                             successCallback.onSuccess(serverPath, pkg, name, version);
                         } catch (Exception e) {
                             Log.e(TAG, "Erreur lors du parsing de la réponse", e);
                             errorCallback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
+                        String errorMessage = "Erreur serveur: " + response.code() + ", Détails: " + responseBody;
                         Log.e(TAG, "Échec du téléversement: " + errorMessage);
                         errorCallback.onError(errorMessage);
                     }
@@ -1007,7 +1040,7 @@ public class ServerServiceImpl implements ServerApi {
             }
 
             JSONObject jsonBody = new JSONObject();
-            jsonBody.put("id", id);
+            //jsonBody.put("id", id);
             jsonBody.put("pkg", pkg);
             jsonBody.put("name", name);
             jsonBody.put("version", version);
@@ -1019,19 +1052,18 @@ public class ServerServiceImpl implements ServerApi {
             jsonBody.put("system", system);
 
             // Ajout des champs supplémentaires
-            jsonBody.put("split", false);          // Indique si l'APK est split (false par défaut)
-            jsonBody.put("runAfterInstall", false); // Ne pas exécuter l'app après l'installation
-            jsonBody.put("runAtBoot", false);      // Ne pas exécuter au démarrage
-            jsonBody.put("skipVersion", false);    // Ne pas ignorer la version
-            jsonBody.put("type", "app");           // Type de l'application (obligatoire dans certains cas)
+            jsonBody.put("split", false);
+            jsonBody.put("runAfterInstall", false);
+            jsonBody.put("runAtBoot", false);
+            jsonBody.put("skipVersion", false);
+            jsonBody.put("type", "app");
 
             // Ajout d'une liste vide pour les configurations
             jsonBody.put("configurations", new JSONArray());
 
-            // Champs optionnels (décommenter si nécessaire)
-            // jsonBody.put("iconText", "");       // Texte de l'icône, si utilisé
-            // jsonBody.put("intent", "");         // Intent personnalisé, si nécessaire
-            // jsonBody.put("action", 0);          // Action spécifique, si nécessaire
+            // Log des données envoyées
+            Log.d(TAG, "Requête envoyée à l'endpoint : " + endpoint);
+            Log.d(TAG, "Corps de la requête : " + jsonBody.toString());
 
             Request request = new Request.Builder()
                     .url(endpoint)
@@ -1048,6 +1080,9 @@ public class ServerServiceImpl implements ServerApi {
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse brute du serveur : " + responseBody);
+
                     if (response.code() == 401) {
                         redirectToLogin();
                         callback.onError("Session expirée");
@@ -1055,7 +1090,6 @@ public class ServerServiceImpl implements ServerApi {
                     }
 
                     if (response.isSuccessful()) {
-                        String responseBody = response.body().string();
                         try {
                             JSONObject jsonResponse = new JSONObject(responseBody);
                             String status = jsonResponse.optString("status", "");
@@ -1068,6 +1102,7 @@ public class ServerServiceImpl implements ServerApi {
                                 }
                                 callback.onCreateAppSuccess(message, applicationId);
                             } else {
+                                Log.e(TAG, "Statut non OK dans la réponse : " + status);
                                 callback.onError("Échec de la création/mise à jour: " + message);
                             }
                         } catch (Exception e) {
@@ -1075,10 +1110,7 @@ public class ServerServiceImpl implements ServerApi {
                             callback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
+                        String errorMessage = "Erreur serveur: " + response.code() + ", Détails: " + responseBody;
                         Log.e(TAG, "Échec de la création/mise à jour de l'application: " + errorMessage);
                         callback.onError(errorMessage);
                     }
@@ -1088,11 +1120,10 @@ public class ServerServiceImpl implements ServerApi {
             Log.e(TAG, "Erreur lors de la préparation de la requête", e);
             callback.onError("Erreur interne: " + e.getMessage());
         }
-    }
-    @Override
+    } @Override
     public void updateConfigurations(int applicationId, String configName, ServerApi.UpdateConfigCallback callback) {
         try {
-            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/configurations";
+            String endpoint = settingsHelper.getBaseUrl() + "/private/configurations";
             String token = settingsHelper.getAdminAuthToken();
 
             if (token == null || token.isEmpty()) {
@@ -1102,30 +1133,37 @@ public class ServerServiceImpl implements ServerApi {
             }
 
             JSONObject jsonBody = new JSONObject();
-            jsonBody.put("applicationId", applicationId);
+            jsonBody.put("id", 0); // 0 pour créer une nouvelle configuration
+            jsonBody.put("name", configName);
+            jsonBody.put("description", "Configuration pour " + configName); // Exemple de description
+            jsonBody.put("password", ""); // À définir si nécessaire, sinon laisser vide ou null
 
-            JSONArray configurations = new JSONArray();
-            JSONObject config = new JSONObject();
-            config.put("id", 0);                    // ID de la configuration (0 si création)
-            config.put("customerId", 0);            // ID du client (0 si non spécifié)
-            config.put("configurationId", 0);       // ID de la configuration (0 si création)
-            config.put("configurationName", configName);
-            config.put("applicationId", applicationId);
-            config.put("applicationName", configName); // Peut être omis si le serveur le déduit
-            config.put("action", 0);                // 0 = associer
-            config.put("showIcon", true);           // Afficher l'icône
-            config.put("remove", false);            // Ne pas supprimer
-            config.put("outdated", false);          // Non obsolète
-            config.put("latestVersionText", "");    // Pas d'info de version (optionnel)
-            config.put("currentVersionText", "");   // Pas d'info de version (optionnel)
-            config.put("notify", false);            // Pas de notification
+            // Ajout de l'application associée
+            JSONArray applications = new JSONArray();
+            JSONObject app = new JSONObject();
+            app.put("id", applicationId); // Utilise l'ID de l'application créée
+            app.put("name", configName);
+            app.put("pkg", "com.microsoft.office.outlook"); // Récupérer dynamiquement si possible
+            app.put("version", "4.2515.2"); // Récupérer dynamiquement si possible
+            app.put("versionCode", 82515814); // Récupérer dynamiquement si possible
+            app.put("arch", null);
+            app.put("url", ""); // Récupérer dynamiquement
+            app.put("showIcon", true);
+            app.put("useKiosk", false);
+            app.put("system", false);
+            app.put("type", "app");
+            applications.put(app);
+            jsonBody.put("applications", applications);
 
-            configurations.put(config);
-            jsonBody.put("configurations", configurations);
+            // Champs optionnels (exemple minimal)
+            jsonBody.put("blockStatusBar", false);
+
+            Log.d(TAG, "Requête envoyée à l'endpoint : " + endpoint);
+            Log.d(TAG, "Corps de la requête : " + jsonBody.toString());
 
             Request request = new Request.Builder()
                     .url(endpoint)
-                    .post(RequestBody.create(JSON, jsonBody.toString()))
+                    .put(RequestBody.create(JSON, jsonBody.toString())) // Changement de POST à PUT
                     .addHeader("Authorization", "Bearer " + token)
                     .build();
 
@@ -1138,6 +1176,9 @@ public class ServerServiceImpl implements ServerApi {
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse brute du serveur : " + responseBody);
+
                     if (response.code() == 401) {
                         redirectToLogin();
                         callback.onError("Session expirée");
@@ -1145,7 +1186,6 @@ public class ServerServiceImpl implements ServerApi {
                     }
 
                     if (response.isSuccessful()) {
-                        String responseBody = response.body().string();
                         try {
                             JSONObject jsonResponse = new JSONObject(responseBody);
                             String status = jsonResponse.optString("status", "");
@@ -1153,6 +1193,7 @@ public class ServerServiceImpl implements ServerApi {
                             if ("OK".equals(status)) {
                                 callback.onUpdateConfigSuccess(message);
                             } else {
+                                Log.e(TAG, "Statut non OK dans la réponse : " + status);
                                 callback.onError("Échec de la mise à jour: " + message);
                             }
                         } catch (Exception e) {
@@ -1160,10 +1201,7 @@ public class ServerServiceImpl implements ServerApi {
                             callback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
+                        String errorMessage = "Erreur serveur: " + response.code() + ", Détails: " + responseBody;
                         Log.e(TAG, "Échec de la mise à jour des configurations: " + errorMessage);
                         callback.onError(errorMessage);
                     }
@@ -1174,12 +1212,6 @@ public class ServerServiceImpl implements ServerApi {
             callback.onError("Erreur interne: " + e.getMessage());
         }
     }
-
-
-
-
-
-
     @Override
     public void getApplicationConfigurations(int applicationId, ServerApi.ApplicationConfigurationsCallback successCallback, ServerApi.ErrorCallback errorCallback) {
         try {
