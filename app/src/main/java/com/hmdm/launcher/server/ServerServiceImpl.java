@@ -854,6 +854,7 @@ public class ServerServiceImpl implements ServerApi {
                 return;
             }
 
+            Log.d(TAG, "Préparation de la requête pour l'endpoint : " + endpoint);
             RequestBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("file", apkFile.getName(),
@@ -881,8 +882,10 @@ public class ServerServiceImpl implements ServerApi {
                         return;
                     }
 
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse brute du serveur : " + responseBody);
+
                     if (response.isSuccessful()) {
-                        String responseBody = response.body().string();
                         try {
                             JSONObject json = new JSONObject(responseBody);
                             String serverPath = json.getString("serverPath");
@@ -892,17 +895,20 @@ public class ServerServiceImpl implements ServerApi {
                             if (successCallback != null) {
                                 successCallback.onSuccess(serverPath, pkg, name, version);
                             }
+
                         } catch (Exception e) {
                             Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
                             if (errorCallback != null) errorCallback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
+
                         String errorMessage = "Erreur serveur: " + response.code();
                         if (response.body() != null) {
                             errorMessage += ", Détails: " + response.body().string();
                         }
                         Log.e(TAG, "Échec de l'upload: " + errorMessage);
                         if (errorCallback != null) errorCallback.onError(errorMessage);
+
                     }
                 }
             });
@@ -997,6 +1003,7 @@ public class ServerServiceImpl implements ServerApi {
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("id", id);
             jsonBody.put("package", pkg);
+
             jsonBody.put("name", name);
             jsonBody.put("version", version);
             jsonBody.put("versionCode", versionCode);
@@ -1007,6 +1014,7 @@ public class ServerServiceImpl implements ServerApi {
             jsonBody.put("system", system);
 
             RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
+
             Request request = new Request.Builder()
                     .url(endpoint)
                     .post(body)
@@ -1022,6 +1030,9 @@ public class ServerServiceImpl implements ServerApi {
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse brute du serveur : " + responseBody);
+
                     if (response.code() == 401) {
                         redirectToLogin();
                         if (callback != null) callback.onError("Session expirée");
@@ -1029,12 +1040,12 @@ public class ServerServiceImpl implements ServerApi {
                     }
 
                     if (response.isSuccessful()) {
-                        String responseBody = response.body().string();
                         try {
                             JSONObject json = new JSONObject(responseBody);
                             String message = json.getString("message");
                             int applicationId = json.getInt("applicationId");
                             if (callback != null) callback.onCreateAppSuccess(message, applicationId);
+
                         } catch (Exception e) {
                             Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
                             if (callback != null) callback.onError("Format de réponse invalide: " + e.getMessage());
@@ -1046,6 +1057,7 @@ public class ServerServiceImpl implements ServerApi {
                         }
                         Log.e(TAG, "Échec de la création/mise à jour: " + errorMessage);
                         if (callback != null) callback.onError(errorMessage);
+
                     }
                 }
             });
@@ -1059,6 +1071,7 @@ public class ServerServiceImpl implements ServerApi {
     public void updateConfigurations(int applicationId, AppConfiguration config, boolean showIcon, UpdateConfigCallback callback) {
         try {
             String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/" + applicationId + "/configurations";
+
             String token = settingsHelper.getAdminAuthToken();
 
             if (token == null || token.isEmpty()) {
@@ -1071,6 +1084,7 @@ public class ServerServiceImpl implements ServerApi {
             jsonBody.put("configurationId", config.getId());
             jsonBody.put("name", config.getName());
             jsonBody.put("showIcon", showIcon);
+
 
             RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
             Request request = new Request.Builder()
@@ -1088,6 +1102,9 @@ public class ServerServiceImpl implements ServerApi {
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse brute du serveur : " + responseBody);
+
                     if (response.code() == 401) {
                         redirectToLogin();
                         if (callback != null) callback.onError("Session expirée");
@@ -1095,20 +1112,17 @@ public class ServerServiceImpl implements ServerApi {
                     }
 
                     if (response.isSuccessful()) {
-                        String responseBody = response.body().string();
                         try {
                             JSONObject json = new JSONObject(responseBody);
                             String message = json.getString("message");
                             if (callback != null) callback.onUpdateConfigSuccess(message);
+
                         } catch (Exception e) {
                             Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
                             if (callback != null) callback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
+                        String errorMessage = "Erreur serveur: " + response.code() + ", Détails: " + responseBody;
                         Log.e(TAG, "Échec de la mise à jour des configurations: " + errorMessage);
                         if (callback != null) callback.onError(errorMessage);
                     }

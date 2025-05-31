@@ -278,6 +278,7 @@ public class AddApplicationFragment extends Fragment {
                         });
                     }
 
+
                     @Override
                     public void onError(String error) {
                         if (!isAdded() || getActivity() == null) {
