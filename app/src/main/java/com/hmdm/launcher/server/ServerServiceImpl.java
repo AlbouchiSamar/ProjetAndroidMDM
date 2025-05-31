@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.ui.Admin.AdminLoginActivity;
+import com.hmdm.launcher.ui.Admin.AppConfiguration;
 import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeleteApplicationFragment;
@@ -42,7 +43,7 @@ import okhttp3.Response;
 public class ServerServiceImpl implements ServerApi {
     private static final String TAG = "ServerServiceImpl";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
+    private static final MediaType APK = MediaType.parse("application/vnd.android.package-archive");
     private final Context context;
     private final OkHttpClient client;
     private final SettingsHelper settingsHelper;
@@ -267,7 +268,7 @@ public class ServerServiceImpl implements ServerApi {
     @Override
     public void modifyDevice(int deviceId, String name, String number, int configurationId, ModifyDeviceCallback successCallback, ErrorCallback errorCallback) {
         try {
-            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/devices/" + deviceId;
+            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/devices/" ;
             String token = settingsHelper.getAdminAuthToken();
 
             if (token == null || token.isEmpty()) {
@@ -844,19 +845,19 @@ public class ServerServiceImpl implements ServerApi {
     @Override
     public void uploadApplicationFile(File apkFile, FileUploadCallback successCallback, ErrorCallback errorCallback) {
         try {
-            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/web-ui-files";
+            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/upload";
             String token = settingsHelper.getAdminAuthToken();
 
             if (token == null || token.isEmpty()) {
                 redirectToLogin();
-                errorCallback.onError("Token d'authentification manquant");
+                if (errorCallback != null) errorCallback.onError("Token d'authentification manquant");
                 return;
             }
 
             RequestBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("file", apkFile.getName(),
-                            RequestBody.create(MediaType.parse("application/vnd.android.package-archive"), apkFile))
+                            RequestBody.create(apkFile, APK))
                     .build();
 
             Request request = new Request.Builder()
@@ -868,264 +869,213 @@ public class ServerServiceImpl implements ServerApi {
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors du téléversement", e);
-                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
+                    Log.e(TAG, "Erreur de connexion lors de l'upload", e);
+                    if (errorCallback != null) errorCallback.onError("Erreur de connexion: " + e.getMessage());
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     if (response.code() == 401) {
                         redirectToLogin();
-                        errorCallback.onError("Session expirée");
+                        if (errorCallback != null) errorCallback.onError("Session expirée");
                         return;
                     }
 
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
                         try {
-                            JSONObject jsonResponse = new JSONObject(responseBody);
-                            String serverPath = jsonResponse.optString("serverPath", "");
-                            JSONObject fileDetails = jsonResponse.optJSONObject("fileDetails");
-                            if (fileDetails == null) {
-                                errorCallback.onError("Détails du fichier absents dans la réponse");
-                                return;
+                            JSONObject json = new JSONObject(responseBody);
+                            String serverPath = json.getString("serverPath");
+                            String pkg = json.optString("package", "");
+                            String name = json.optString("name", "");
+                            String version = json.optString("version", "");
+                            if (successCallback != null) {
+                                successCallback.onSuccess(serverPath, pkg, name, version);
                             }
-                            String pkg = fileDetails.optString("pkg", "");
-                            String name = fileDetails.optString("name", "");
-                            String version = fileDetails.optString("version", "");
-                            successCallback.onSuccess(serverPath, pkg, name, version);
                         } catch (Exception e) {
-                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
-                            errorCallback.onError("Format de réponse invalide: " + e.getMessage());
+                            Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
+                            if (errorCallback != null) errorCallback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
                         String errorMessage = "Erreur serveur: " + response.code();
                         if (response.body() != null) {
                             errorMessage += ", Détails: " + response.body().string();
                         }
-                        Log.e(TAG, "Échec du téléversement: " + errorMessage);
-                        errorCallback.onError(errorMessage);
+                        Log.e(TAG, "Échec de l'upload: " + errorMessage);
+                        if (errorCallback != null) errorCallback.onError(errorMessage);
                     }
                 }
             });
         } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            errorCallback.onError("Erreur interne: " + e.getMessage());
+            Log.e(TAG, "Erreur lors de la préparation de la requête d'upload", e);
+            if (errorCallback != null) errorCallback.onError("Erreur interne: " + e.getMessage());
         }
     }
+
     @Override
-    public void validatePackage(String pkg, String name, String version, int versionCode, String arch, String url, ServerApi.ValidatePackageCallback callback) {
+    public void validatePackage(String pkg, String name, String version, int versionCode, String arch, String url, ValidatePackageCallback callback) {
         try {
-            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/validatePkg";
+            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/validate";
             String token = settingsHelper.getAdminAuthToken();
 
             if (token == null || token.isEmpty()) {
                 redirectToLogin();
-                callback.onError("Token d'authentification manquant");
+                if (callback != null) callback.onError("Token d'authentification manquant");
                 return;
             }
 
             JSONObject jsonBody = new JSONObject();
-            jsonBody.put("pkg", pkg);
+            jsonBody.put("package", pkg);
             jsonBody.put("name", name);
             jsonBody.put("version", version);
             jsonBody.put("versionCode", versionCode);
             jsonBody.put("arch", arch);
             jsonBody.put("url", url);
-            jsonBody.put("showIcon", true);
-            jsonBody.put("useKiosk", false);
-            jsonBody.put("system", false);
 
+            RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
             Request request = new Request.Builder()
                     .url(endpoint)
-                    .put(RequestBody.create(JSON, jsonBody.toString()))
+                    .post(body)
                     .addHeader("Authorization", "Bearer " + token)
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de la validation du package", e);
-                    callback.onError("Erreur de connexion: " + e.getMessage());
+                    Log.e(TAG, "Erreur de connexion lors de la validation", e);
+                    if (callback != null) callback.onError("Erreur de connexion: " + e.getMessage());
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     if (response.code() == 401) {
                         redirectToLogin();
-                        callback.onError("Session expirée");
+                        if (callback != null) callback.onError("Session expirée");
                         return;
                     }
 
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
                         try {
-                            JSONObject jsonResponse = new JSONObject(responseBody);
-                            String status = jsonResponse.optString("status", "");
-                            if ("OK".equals(status)) {
-                                JSONArray dataArray = jsonResponse.optJSONArray("data");
-                                if (dataArray == null) {
-                                    callback.onError("Champ 'data' absent ou invalide dans la réponse");
-                                    return;
-                                }
-                                boolean isUnique = dataArray.length() == 0;
-                                callback.onValidatePackage(isUnique, pkg);
-                            } else {
-                                callback.onError("Statut non OK: " + jsonResponse.optString("message", "Erreur inconnue"));
-                            }
+                            JSONObject json = new JSONObject(responseBody);
+                            boolean isUnique = json.getBoolean("isUnique");
+                            String validatedPkg = json.getString("package");
+                            if (callback != null) callback.onValidatePackage(isUnique, validatedPkg);
                         } catch (Exception e) {
                             Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
-                            callback.onError("Format de réponse invalide: " + e.getMessage());
+                            if (callback != null) callback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
                         String errorMessage = "Erreur serveur: " + response.code();
                         if (response.body() != null) {
                             errorMessage += ", Détails: " + response.body().string();
                         }
-                        Log.e(TAG, "Échec de la validation du package: " + errorMessage);
-                        callback.onError(errorMessage);
+                        Log.e(TAG, "Échec de la validation: " + errorMessage);
+                        if (callback != null) callback.onError(errorMessage);
                     }
                 }
             });
         } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            callback.onError("Erreur interne: " + e.getMessage());
+            Log.e(TAG, "Erreur lors de la préparation de la requête de validation", e);
+            if (callback != null) callback.onError("Erreur interne: " + e.getMessage());
         }
     }
 
-
     @Override
-    public void createOrUpdateApp(int id, String pkg, String name, String version, int versionCode, String arch, String url, boolean showIcon, boolean useKiosk, boolean system, ServerApi.CreateAppCallback callback) {
+    public void createOrUpdateApp(int id, String pkg, String name, String version, int versionCode, String arch, String url,
+                                  boolean showIcon, boolean runAfterInstall, boolean system, CreateAppCallback callback) {
         try {
-            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/android";
+            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications";
             String token = settingsHelper.getAdminAuthToken();
 
             if (token == null || token.isEmpty()) {
                 redirectToLogin();
-                callback.onError("Token d'authentification manquant");
+                if (callback != null) callback.onError("Token d'authentification manquant");
                 return;
             }
 
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("id", id);
-            jsonBody.put("pkg", pkg);
+            jsonBody.put("package", pkg);
             jsonBody.put("name", name);
             jsonBody.put("version", version);
             jsonBody.put("versionCode", versionCode);
             jsonBody.put("arch", arch);
             jsonBody.put("url", url);
-            jsonBody.put("showIcon", true);
-            jsonBody.put("useKiosk", false);
+            jsonBody.put("showIcon", showIcon);
+            jsonBody.put("runAfterInstall", runAfterInstall);
             jsonBody.put("system", system);
 
-            // Ajout des champs supplémentaires
-            jsonBody.put("split", false);          // Indique si l'APK est split (false par défaut)
-            jsonBody.put("runAfterInstall", false); // Ne pas exécuter l'app après l'installation
-            jsonBody.put("runAtBoot", false);      // Ne pas exécuter au démarrage
-            jsonBody.put("skipVersion", false);    // Ne pas ignorer la version
-            jsonBody.put("type", "app");           // Type de l'application (obligatoire dans certains cas)
-
-            // Ajout d'une liste vide pour les configurations
-            jsonBody.put("configurations", new JSONArray());
-
-            // Champs optionnels (décommenter si nécessaire)
-            // jsonBody.put("iconText", "");       // Texte de l'icône, si utilisé
-            // jsonBody.put("intent", "");         // Intent personnalisé, si nécessaire
-            // jsonBody.put("action", 0);          // Action spécifique, si nécessaire
-
+            RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
             Request request = new Request.Builder()
                     .url(endpoint)
-                    .put(RequestBody.create(JSON, jsonBody.toString()))
+                    .post(body)
                     .addHeader("Authorization", "Bearer " + token)
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de la création/mise à jour de l'application", e);
-                    callback.onError("Erreur de connexion: " + e.getMessage());
+                    Log.e(TAG, "Erreur de connexion lors de la création/mise à jour", e);
+                    if (callback != null) callback.onError("Erreur de connexion: " + e.getMessage());
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     if (response.code() == 401) {
                         redirectToLogin();
-                        callback.onError("Session expirée");
+                        if (callback != null) callback.onError("Session expirée");
                         return;
                     }
 
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
                         try {
-                            JSONObject jsonResponse = new JSONObject(responseBody);
-                            String status = jsonResponse.optString("status", "");
-                            String message = jsonResponse.optString("message", "Application créée/mise à jour avec succès");
-                            if ("OK".equals(status)) {
-                                JSONObject data = jsonResponse.optJSONObject("data");
-                                int applicationId = data != null ? data.optInt("id", -1) : -1;
-                                if (applicationId == -1) {
-                                    Log.w(TAG, "ID de l'application non trouvé dans la réponse");
-                                }
-                                callback.onCreateAppSuccess(message, applicationId);
-                            } else {
-                                callback.onError("Échec de la création/mise à jour: " + message);
-                            }
+                            JSONObject json = new JSONObject(responseBody);
+                            String message = json.getString("message");
+                            int applicationId = json.getInt("applicationId");
+                            if (callback != null) callback.onCreateAppSuccess(message, applicationId);
                         } catch (Exception e) {
-                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
-                            callback.onError("Format de réponse invalide: " + e.getMessage());
+                            Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
+                            if (callback != null) callback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
                         String errorMessage = "Erreur serveur: " + response.code();
                         if (response.body() != null) {
                             errorMessage += ", Détails: " + response.body().string();
                         }
-                        Log.e(TAG, "Échec de la création/mise à jour de l'application: " + errorMessage);
-                        callback.onError(errorMessage);
+                        Log.e(TAG, "Échec de la création/mise à jour: " + errorMessage);
+                        if (callback != null) callback.onError(errorMessage);
                     }
                 }
             });
         } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            callback.onError("Erreur interne: " + e.getMessage());
+            Log.e(TAG, "Erreur lors de la préparation de la requête de création/mise à jour", e);
+            if (callback != null) callback.onError("Erreur interne: " + e.getMessage());
         }
     }
+
     @Override
-    public void updateConfigurations(int applicationId, String configName, ServerApi.UpdateConfigCallback callback) {
+    public void updateConfigurations(int applicationId, AppConfiguration config, boolean showIcon, UpdateConfigCallback callback) {
         try {
-            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/configurations";
+            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/" + applicationId + "/configurations";
             String token = settingsHelper.getAdminAuthToken();
 
             if (token == null || token.isEmpty()) {
                 redirectToLogin();
-                callback.onError("Token d'authentification manquant");
+                if (callback != null) callback.onError("Token d'authentification manquant");
                 return;
             }
 
             JSONObject jsonBody = new JSONObject();
-            jsonBody.put("applicationId", applicationId);
+            jsonBody.put("configurationId", config.getId());
+            jsonBody.put("name", config.getName());
+            jsonBody.put("showIcon", showIcon);
 
-            JSONArray configurations = new JSONArray();
-            JSONObject config = new JSONObject();
-            config.put("id", 0);                    // ID de la configuration (0 si création)
-            config.put("customerId", 0);            // ID du client (0 si non spécifié)
-            config.put("configurationId", 0);       // ID de la configuration (0 si création)
-            config.put("configurationName", configName);
-            config.put("applicationId", applicationId);
-            config.put("applicationName", configName); // Peut être omis si le serveur le déduit
-            config.put("action", 0);                // 0 = associer
-            config.put("showIcon", true);           // Afficher l'icône
-            config.put("remove", false);            // Ne pas supprimer
-            config.put("outdated", false);          // Non obsolète
-            config.put("latestVersionText", "");    // Pas d'info de version (optionnel)
-            config.put("currentVersionText", "");   // Pas d'info de version (optionnel)
-            config.put("notify", false);            // Pas de notification
-
-            configurations.put(config);
-            jsonBody.put("configurations", configurations);
-
+            RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
             Request request = new Request.Builder()
                     .url(endpoint)
-                    .post(RequestBody.create(JSON, jsonBody.toString()))
+                    .post(body)
                     .addHeader("Authorization", "Bearer " + token)
                     .build();
 
@@ -1133,31 +1083,26 @@ public class ServerServiceImpl implements ServerApi {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     Log.e(TAG, "Erreur de connexion lors de la mise à jour des configurations", e);
-                    callback.onError("Erreur de connexion: " + e.getMessage());
+                    if (callback != null) callback.onError("Erreur de connexion: " + e.getMessage());
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     if (response.code() == 401) {
                         redirectToLogin();
-                        callback.onError("Session expirée");
+                        if (callback != null) callback.onError("Session expirée");
                         return;
                     }
 
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
                         try {
-                            JSONObject jsonResponse = new JSONObject(responseBody);
-                            String status = jsonResponse.optString("status", "");
-                            String message = jsonResponse.optString("message", "Configuration mise à jour avec succès");
-                            if ("OK".equals(status)) {
-                                callback.onUpdateConfigSuccess(message);
-                            } else {
-                                callback.onError("Échec de la mise à jour: " + message);
-                            }
+                            JSONObject json = new JSONObject(responseBody);
+                            String message = json.getString("message");
+                            if (callback != null) callback.onUpdateConfigSuccess(message);
                         } catch (Exception e) {
-                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
-                            callback.onError("Format de réponse invalide: " + e.getMessage());
+                            Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
+                            if (callback != null) callback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
                         String errorMessage = "Erreur serveur: " + response.code();
@@ -1165,35 +1110,30 @@ public class ServerServiceImpl implements ServerApi {
                             errorMessage += ", Détails: " + response.body().string();
                         }
                         Log.e(TAG, "Échec de la mise à jour des configurations: " + errorMessage);
-                        callback.onError(errorMessage);
+                        if (callback != null) callback.onError(errorMessage);
                     }
                 }
             });
         } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            callback.onError("Erreur interne: " + e.getMessage());
+            Log.e(TAG, "Erreur lors de la préparation de la requête de mise à jour des configurations", e);
+            if (callback != null) callback.onError("Erreur interne: " + e.getMessage());
         }
     }
 
-
-
-
-
-
     @Override
-    public void getApplicationConfigurations(int applicationId, ServerApi.ApplicationConfigurationsCallback successCallback, ServerApi.ErrorCallback errorCallback) {
+    public void getApplicationConfigurations(int applicationId, GetConfigurationsCallback callback) {
         try {
-            String url = settingsHelper.getBaseUrl() + "/rest/private/applications/configurations/" + applicationId;
+            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/" + applicationId + "/configurations";
             String token = settingsHelper.getAdminAuthToken();
 
             if (token == null || token.isEmpty()) {
                 redirectToLogin();
-                errorCallback.onError("Token d'authentification manquant");
+                if (callback != null) callback.onError("Token d'authentification manquant");
                 return;
             }
 
             Request request = new Request.Builder()
-                    .url(url)
+                    .url(endpoint)
                     .get()
                     .addHeader("Authorization", "Bearer " + token)
                     .build();
@@ -1202,37 +1142,35 @@ public class ServerServiceImpl implements ServerApi {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     Log.e(TAG, "Erreur de connexion lors de la récupération des configurations", e);
-                    errorCallback.onError("Erreur de connexion: " + e.getMessage());
+                    if (callback != null) callback.onError("Erreur de connexion: " + e.getMessage());
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     if (response.code() == 401) {
                         redirectToLogin();
-                        errorCallback.onError("Session expirée");
+                        if (callback != null) callback.onError("Session expirée");
                         return;
                     }
 
                     if (response.isSuccessful()) {
                         String responseBody = response.body().string();
                         try {
-                            JSONArray data = new JSONArray(responseBody);
-                            List<DeleteApplicationFragment.ApplicationConfiguration> configurations = new ArrayList<>();
-                            for (int i = 0; i < data.length(); i++) {
-                                JSONObject item = data.optJSONObject(i);
-                                if (item == null) continue;
-
-                                int id = item.optInt("id", 0);
-                                int configurationId = item.optInt("configurationId", 0);
-                                String configurationName = item.optString("configurationName", "Sans nom");
-                                boolean remove = item.optBoolean("remove", false);
-
-                                configurations.add(new DeleteApplicationFragment.ApplicationConfiguration(id, configurationId, configurationName, remove));
+                            JSONArray configurations = new JSONArray(responseBody);
+                            List<AppConfiguration> configList = new ArrayList<>();
+                            for (int i = 0; i < configurations.length(); i++) {
+                                JSONObject configObj = configurations.optJSONObject(i);
+                                if (configObj != null) {
+                                    Configuration config = new Configuration();
+                                    config.setId(configObj.optInt("configurationId", 0));
+                                    config.setName(configObj.optString("configurationName", ""));
+                                    configList.add(config);
+                                }
                             }
-                            successCallback.onApplicationConfigurations(configurations);
+                            if (callback != null) callback.onSuccess(configList);
                         } catch (Exception e) {
-                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
-                            errorCallback.onError("Format de réponse invalide: " + e.getMessage());
+                            Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
+                            if (callback != null) callback.onError("Format de réponse invalide: " + e.getMessage());
                         }
                     } else {
                         String errorMessage = "Erreur serveur: " + response.code();
@@ -1240,14 +1178,28 @@ public class ServerServiceImpl implements ServerApi {
                             errorMessage += ", Détails: " + response.body().string();
                         }
                         Log.e(TAG, "Échec de la récupération des configurations: " + errorMessage);
-                        errorCallback.onError(errorMessage);
+                        if (callback != null) callback.onError(errorMessage);
                     }
                 }
             });
         } catch (Exception e) {
             Log.e(TAG, "Erreur lors de la préparation de la requête", e);
-            errorCallback.onError("Erreur interne: " + e.getMessage());
+            if (callback != null) callback.onError("Erreur interne: " + e.getMessage());
         }
+    }
+
+    // Inner class to implement AppConfiguration
+    private static class Configuration implements AppConfiguration {
+        private int id;
+        private String name;
+
+        @Override
+        public int getId() { return id; }
+        @Override
+        public String getName() { return name; }
+
+        public void setId(int id) { this.id = id; }
+        public void setName(String name) { this.name = name; }
     }
 
     @Override
@@ -1311,6 +1263,76 @@ public class ServerServiceImpl implements ServerApi {
         } catch (Exception e) {
             Log.e(TAG, "Erreur lors de la préparation de la requête", e);
             errorCallback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void getApplicationConfigurationsDelet(int applicationId, ApplicationConfigurationsCallback successCallback, ErrorCallback errorCallback) {
+        try {
+            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/configurations"+ applicationId ;
+            String token = settingsHelper.getAdminAuthToken();
+
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                if (errorCallback != null) errorCallback.onError("Token d'authentification manquant");
+                return;
+            }
+
+            Request request = new Request.Builder()
+                    .url(endpoint)
+                    .get()
+                    .addHeader("Authorization", "Bearer " + token)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors de la récupération des configurations", e);
+                    if (errorCallback != null) errorCallback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        if (errorCallback != null) errorCallback.onError("Session expirée");
+                        return;
+                    }
+
+                    if (response.isSuccessful()) {
+                        String responseBody = response.body().string();
+                        try {
+                            JSONArray configurations = new JSONArray(responseBody);
+                            List<DeleteApplicationFragment.ApplicationConfiguration> configList = new ArrayList<>();
+                            for (int i = 0; i < configurations.length(); i++) {
+                                JSONObject configObj = configurations.optJSONObject(i);
+                                if (configObj != null) {
+                                    int id = configObj.optInt("id", 0);
+                                    int configurationId = configObj.optInt("configurationId", 0);
+                                    String configurationName = configObj.optString("configurationName", "");
+                                    DeleteApplicationFragment.ApplicationConfiguration config =
+                                            new DeleteApplicationFragment.ApplicationConfiguration(id, configurationId, configurationName);
+                                    configList.add(config);
+                                }
+                            }
+                            if (successCallback != null) successCallback.onSuccess(configList);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
+                            if (errorCallback != null) errorCallback.onError("Format de réponse invalide: " + e.getMessage());
+                        }
+                    } else {
+                        String errorMessage = "Erreur serveur: " + response.code();
+                        if (response.body() != null) {
+                            errorMessage += ", Détails: " + response.body().string();
+                        }
+                        Log.e(TAG, "Échec de la récupération des configurations: " + errorMessage);
+                        if (errorCallback != null) errorCallback.onError(errorMessage);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
+            if (errorCallback != null) errorCallback.onError("Erreur interne: " + e.getMessage());
         }
     }
     @Override
@@ -1399,6 +1421,156 @@ public class ServerServiceImpl implements ServerApi {
         } catch (Exception e) {
             Log.e(TAG, "Erreur lors de la préparation de la requête", e);
             errorCallback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+//configuration
+    @Override
+    public void copyConfiguration(int configurationId, String newName, CopyConfigurationCallback callback) {
+        try {
+            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/configurations/copy";
+            String token = settingsHelper.getAdminAuthToken();
+
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                callback.onError("Token d'authentification manquant");
+                return;
+            }
+
+            // Créer le corps de la requête avec uniquement les champs nécessaires
+            JSONObject jsonBody = new JSONObject();
+            jsonBody.put("id", configurationId);
+            jsonBody.put("name", newName);
+            // Les autres champs sont optionnels et non nécessaires pour une copie minimale
+            // Si le serveur exige d'autres champs, ils doivent être ajoutés ici
+
+            Log.d(TAG, "Requête PUT envoyée à l'endpoint : " + endpoint);
+            Log.d(TAG, "Corps de la requête : " + jsonBody.toString());
+
+            Request request = new Request.Builder()
+                    .url(endpoint)
+                    .put(RequestBody.create(JSON, jsonBody.toString()))
+                    .addHeader("Authorization", "Bearer " + token)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors de la copie de la configuration", e);
+                    callback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse brute du serveur : " + responseBody);
+
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        callback.onError("Session expirée");
+                        return;
+                    }
+
+                    if (response.isSuccessful()) {
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            String status = jsonResponse.optString("status", "");
+                            String message = jsonResponse.optString("message", "Configuration copiée avec succès");
+                            if ("OK".equals(status)) {
+                                callback.onSuccess(message);
+                            } else {
+                                Log.e(TAG, "Statut non OK dans la réponse : " + status);
+                                callback.onError("Échec de la copie: " + message);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
+                            callback.onError("Format de réponse invalide: " + e.getMessage());
+                        }
+                    } else {
+                        String errorMessage = "Erreur serveur: " + response.code() + ", Détails: " + responseBody;
+                        Log.e(TAG, "Échec de la copie de la configuration: " + errorMessage);
+                        callback.onError(errorMessage);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
+            callback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteConfiguration(int configurationId, DeleteConfigurationCallback callback) {
+        try {
+            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/configurations/" + configurationId;
+            String token = settingsHelper.getAdminAuthToken();
+
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                callback.onError("Token d'authentification manquant");
+                return;
+            }
+
+            Log.d(TAG, "Requête DELETE envoyée à l'endpoint : " + endpoint);
+
+            Request request = new Request.Builder()
+                    .url(endpoint)
+                    .delete()
+                    .addHeader("Authorization", "Bearer " + token)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors de la suppression de la configuration", e);
+                    callback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Réponse brute du serveur : " + responseBody);
+
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        callback.onError("Session expirée");
+                        return;
+                    }
+
+                    if (response.isSuccessful()) {
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            String status = jsonResponse.optString("status", "");
+                            String message = jsonResponse.optString("message", "Configuration supprimée avec succès");
+                            if ("OK".equals(status)) {
+                                callback.onSuccess(message);
+                            } else {
+                                Log.e(TAG, "Statut non OK dans la réponse : " + status);
+                                callback.onError("Échec de la suppression: " + message);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
+                            callback.onError("Format de réponse invalide: " + e.getMessage());
+                        }
+                    } else {
+                        String errorMessage = "Erreur serveur: " + response.code() + ", Détails: " + responseBody;
+                        Log.e(TAG, "Échec de la suppression de la configuration: " + errorMessage);
+                        callback.onError(errorMessage);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
+            callback.onError("Erreur interne: " + e.getMessage());
         }
     }
 }

@@ -45,10 +45,25 @@ public class ModifyDeviceFragment extends Fragment {
             if (deviceId == -1) {
                 Toast.makeText(requireContext(), "ID de l'appareil non spécifié", Toast.LENGTH_LONG).show();
                 requireActivity().getSupportFragmentManager().popBackStack();
+                return view;
+            }
+
+            // Pré-remplir les champs avec les données de l'appareil passées via le Bundle
+            String deviceName = args.getString("deviceName", "");
+            String deviceNumber = args.getString("deviceNumber", "");
+            int configurationId = args.getInt("configurationId", -1);
+
+            editDeviceName.setText(deviceName);
+            editDeviceNumber.setText(deviceNumber);
+            if (configurationId != -1) {
+                editConfigurationId.setText(String.valueOf(configurationId));
+            } else {
+                editConfigurationId.setText("");
             }
         } else {
             Toast.makeText(requireContext(), "Arguments manquants", Toast.LENGTH_LONG).show();
             requireActivity().getSupportFragmentManager().popBackStack();
+            return view;
         }
 
         saveButton.setOnClickListener(v -> modifyDevice());

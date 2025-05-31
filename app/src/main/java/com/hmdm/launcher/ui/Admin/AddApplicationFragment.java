@@ -13,17 +13,23 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
 import com.hmdm.launcher.R;
 import com.hmdm.launcher.helper.SettingsHelper;
 import com.hmdm.launcher.server.ServerApi;
 import com.hmdm.launcher.server.ServerServiceImpl;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class AddApplicationFragment extends Fragment {
     private static final String TAG = "AddApplicationFragment";
@@ -41,7 +47,7 @@ public class AddApplicationFragment extends Fragment {
     private ActivityResultLauncher<Intent> filePickerLauncher;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         settingsHelper = SettingsHelper.getInstance(requireContext());
         serverApi = new ServerServiceImpl(requireContext());
@@ -91,7 +97,7 @@ public class AddApplicationFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_add_application, container, false);
 
         selectFileButton = view.findViewById(R.id.select_file_button);
@@ -205,13 +211,19 @@ public class AddApplicationFragment extends Fragment {
             });
         } catch (IOException e) {
             Log.e(TAG, "Erreur lors de la conversion de l'URI en fichier : " + e.getMessage());
-            progressBar.setVisibility(View.GONE);
-            statusTextView.setText("Erreur lors de la conversion du fichier : " + e.getMessage());
+            if (isAdded() && getActivity() != null) {
+                requireActivity().runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    statusTextView.setText("Erreur lors de la conversion du fichier : " + e.getMessage());
+                });
+            }
         }
     }
 
     private void validatePackage(String pkg, String name, String version, int versionCode, String arch, String url) {
         Log.d(TAG, "Validation du package - Pkg: " + pkg + ", Nom: " + name + ", Version: " + version);
+        progressBar.setVisibility(View.VISIBLE);
+        statusTextView.setText("Validation en cours...");
         serverApi.validatePackage(pkg, name, version, versionCode, arch, url, new ServerApi.ValidatePackageCallback() {
             @Override
             public void onValidatePackage(boolean isUnique, String validatedPkg) {
@@ -249,49 +261,85 @@ public class AddApplicationFragment extends Fragment {
 
     private void createOrUpdateApp(int id, String pkg, String name, String version, int versionCode, String arch, String url) {
         Log.d(TAG, "Création/Mise à jour de l'application - ID: " + id + ", Pkg: " + pkg);
-        serverApi.createOrUpdateApp(id, pkg, name, version, versionCode, arch, url, true, false, false, new ServerApi.CreateAppCallback() {
-            @Override
-            public void onCreateAppSuccess(String message, int applicationId) {
-                if (!isAdded() || getActivity() == null) {
-                    Log.w(TAG, "Fragment détaché, callback ignoré");
-                    return;
-                }
-                requireActivity().runOnUiThread(() -> {
-                    Log.d(TAG, "Application créée/mise à jour avec succès - ID: " + applicationId + ", Message: " + message);
-                    statusTextView.append("\nApplication créée/mise à jour : " + message);
-                    updateConfigurations(applicationId, name);
-                });
-            }
+        progressBar.setVisibility(View.VISIBLE);
+        statusTextView.setText("Création/Mise à jour en cours...");
+        serverApi.createOrUpdateApp(id, pkg, name, version, versionCode, arch, url, true, false, false,
+                new ServerApi.CreateAppCallback() {
+                    @Override
+                    public void onCreateAppSuccess(String message, int applicationId) {
+                        if (!isAdded() || getActivity() == null) {
+                            Log.w(TAG, "Fragment détaché, callback ignoré");
+                            return;
+                        }
+                        requireActivity().runOnUiThread(() -> {
+                            Log.d(TAG, "Application créée/mise à jour avec succès - ID: " + applicationId + ", Message: " + message);
+                            statusTextView.append("\nApplication créée/mise à jour : " + message);
+                            updateConfigurations(applicationId, name);
+                        });
+                    }
 
-            @Override
-            public void onError(String error) {
-                if (!isAdded() || getActivity() == null) {
-                    Log.w(TAG, "Fragment détaché, callback ignoré");
-                    return;
-                }
-                requireActivity().runOnUiThread(() -> {
-                    Log.e(TAG, "Erreur lors de la création/mise à jour : " + error);
-                    progressBar.setVisibility(View.GONE);
-                    statusTextView.append("\nErreur création application : " + error);
+                    @Override
+                    public void onError(String error) {
+                        if (!isAdded() || getActivity() == null) {
+                            Log.w(TAG, "Fragment détaché, callback ignoré");
+                            return;
+                        }
+                        requireActivity().runOnUiThread(() -> {
+                            Log.e(TAG, "Erreur lors de la création/mise à jour : " + error);
+                            progressBar.setVisibility(View.GONE);
+                            statusTextView.append("\nErreur création application : " + error);
+                        });
+                    }
                 });
-            }
-        });
     }
 
     private void updateConfigurations(int applicationId, String configName) {
         Log.d(TAG, "Mise à jour des configurations - App ID: " + applicationId + ", Config: " + configName);
-        serverApi.updateConfigurations(applicationId, configName, new ServerApi.UpdateConfigCallback() {
+        progressBar.setVisibility(View.VISIBLE);
+        statusTextView.setText("Mise à jour des configurations en cours...");
+        serverApi.getApplicationConfigurations(applicationId, new ServerApi.GetConfigurationsCallback() {
             @Override
-            public void onUpdateConfigSuccess(String message) {
+            public void onSuccess(List<AppConfiguration> configurations) {
                 if (!isAdded() || getActivity() == null) {
                     Log.w(TAG, "Fragment détaché, callback ignoré");
                     return;
                 }
-                requireActivity().runOnUiThread(() -> {
-                    Log.d(TAG, "Configuration mise à jour avec succès - Message: " + message);
-                    progressBar.setVisibility(View.GONE);
-                    statusTextView.append("\nConfiguration mise à jour : " + message);
-                });
+                AppConfiguration configToUpdate = null;
+                // Replace stream with a for loop for API 23 compatibility
+                for (AppConfiguration config : configurations) {
+                    if (config.getName().equals(configName)) {
+                        configToUpdate = config;
+                        break;
+                    }
+                }
+                if (configToUpdate != null) {
+                    // Call the correct updateConfigurations method with AppConfiguration and showIcon
+                    serverApi.updateConfigurations(applicationId, configToUpdate, true, new ServerApi.UpdateConfigCallback() {
+                        @Override
+                        public void onUpdateConfigSuccess(String message) {
+                            requireActivity().runOnUiThread(() -> {
+                                Log.d(TAG, "Configuration mise à jour avec succès - Message: " + message);
+                                progressBar.setVisibility(View.GONE);
+                                statusTextView.append("\nConfiguration mise à jour : " + message);
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            requireActivity().runOnUiThread(() -> {
+                                Log.e(TAG, "Erreur lors de la mise à jour des configurations : " + error);
+                                progressBar.setVisibility(View.GONE);
+                                statusTextView.append("\nErreur configuration : " + error);
+                            });
+                        }
+                    });
+                } else {
+                    requireActivity().runOnUiThread(() -> {
+                        Log.w(TAG, "Aucune configuration trouvée pour : " + configName);
+                        progressBar.setVisibility(View.GONE);
+                        statusTextView.append("\nErreur : Aucune configuration trouvée");
+                    });
+                }
             }
 
             @Override
@@ -301,7 +349,7 @@ public class AddApplicationFragment extends Fragment {
                     return;
                 }
                 requireActivity().runOnUiThread(() -> {
-                    Log.e(TAG, "Erreur lors de la mise à jour des configurations : " + error);
+                    Log.e(TAG, "Erreur lors de la récupération des configurations : " + error);
                     progressBar.setVisibility(View.GONE);
                     statusTextView.append("\nErreur configuration : " + error);
                 });

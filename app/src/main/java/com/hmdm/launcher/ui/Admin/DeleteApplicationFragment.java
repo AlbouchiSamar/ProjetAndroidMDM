@@ -54,8 +54,7 @@ public class DeleteApplicationFragment extends Fragment {
         btnDelete = view.findViewById(R.id.btn_delete);
         progressBar = view.findViewById(R.id.progress_bar);
 
-        textApplicationName.setText("Aucune application sélectionnée");
-        textConfigurations.setText("Aucune configuration associée");
+        resetForm(); // Réinitialisation initiale
         btnDelete.setEnabled(false);
         progressBar.setVisibility(View.GONE);
         isOperationInProgress = false;
@@ -64,6 +63,15 @@ public class DeleteApplicationFragment extends Fragment {
         btnDelete.setOnClickListener(v -> showDeleteConfirmationDialog());
 
         return view;
+    }
+
+    private void resetForm() {
+        editApplicationId.setText("");
+        textApplicationName.setText("Aucune application sélectionnée");
+        textConfigurations.setText("Aucune configuration associée");
+        btnDelete.setEnabled(false);
+        applicationId = 0;
+        applicationName = null;
     }
 
     private void searchApplication() {
@@ -82,6 +90,10 @@ public class DeleteApplicationFragment extends Fragment {
 
         try {
             applicationId = Integer.parseInt(idText);
+            if (applicationId <= 0) {
+                Toast.makeText(requireContext(), "L'ID d'application doit être un nombre positif", Toast.LENGTH_SHORT).show();
+                return;
+            }
         } catch (NumberFormatException e) {
             Toast.makeText(requireContext(), "ID d'application invalide", Toast.LENGTH_SHORT).show();
             return;
@@ -162,7 +174,7 @@ public class DeleteApplicationFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
         Toast.makeText(requireContext(), "Vérification des configurations associées...", Toast.LENGTH_SHORT).show();
 
-        serverService.getApplicationConfigurations(
+        serverService.getApplicationConfigurationsDelet(
                 applicationId,
                 configurations -> {
                     if (!isAdded() || getActivity() == null) {
@@ -181,7 +193,7 @@ public class DeleteApplicationFragment extends Fragment {
                                 configNames.append(config.getConfigurationName()).append(", ");
                             }
                             String configText = configNames.toString();
-                            textConfigurations.setText(configText.substring(0, configText.length() - 2)); // Supprime la dernière virgule
+                            textConfigurations.setText(configText.substring(0, configText.length() - 2));
                             Toast.makeText(requireContext(), "Configurations associées trouvées: " + configurations.size(), Toast.LENGTH_SHORT).show();
                             Log.d(TAG, "Configurations associées trouvées: " + configurations.size());
                             updateConfigurations(configurations);
@@ -200,6 +212,8 @@ public class DeleteApplicationFragment extends Fragment {
                         isOperationInProgress = false;
                         Toast.makeText(requireContext(), "Erreur lors de la vérification des configurations: " + error, Toast.LENGTH_LONG).show();
                         Log.e(TAG, "Erreur vérification configurations: " + error);
+                        // Ajout d'une option pour réessayer
+                        showRetryDialog("Erreur lors de la vérification des configurations", this::checkAndDeleteApplication);
                     });
                 }
         );
@@ -239,6 +253,8 @@ public class DeleteApplicationFragment extends Fragment {
                         isOperationInProgress = false;
                         Toast.makeText(requireContext(), "Erreur lors de la mise à jour des configurations: " + error, Toast.LENGTH_LONG).show();
                         Log.e(TAG, "Erreur mise à jour configurations: " + error);
+                        // Ajout d'une option pour réessayer
+                        showRetryDialog("Erreur lors de la mise à jour des configurations", () -> updateConfigurations(configurations));
                     });
                 }
         );
@@ -254,8 +270,8 @@ public class DeleteApplicationFragment extends Fragment {
                         return;
                     }
                     requireActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), "Application supprimée avec succès", Toast.LENGTH_SHORT).show();
-                        getActivity().getSupportFragmentManager().popBackStack();
+                        Toast.makeText(requireContext(), "Application supprimée et désinstallation en cours...", Toast.LENGTH_LONG).show();
+                        resetForm(); // Réinitialisation au lieu de popBackStack
                         progressBar.setVisibility(View.GONE);
                         isOperationInProgress = false;
                         Log.d(TAG, "Suppression réussie: ID=" + applicationId);
@@ -273,9 +289,21 @@ public class DeleteApplicationFragment extends Fragment {
                         isOperationInProgress = false;
                         Toast.makeText(requireContext(), "Erreur lors de la suppression: " + error, Toast.LENGTH_LONG).show();
                         Log.e(TAG, "Erreur suppression application: " + error);
+                        // Ajout d'une option pour réessayer
+                        showRetryDialog("Erreur lors de la suppression de l'application", this::deleteApplication);
                     });
                 }
         );
+    }
+
+    private void showRetryDialog(String message, Runnable retryAction) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Erreur")
+                .setMessage(message + ". Voulez-vous réessayer ?")
+                .setPositiveButton("Réessayer", (dialog, which) -> retryAction.run())
+                .setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     public static class ApplicationConfiguration {

@@ -1,5 +1,6 @@
 package com.hmdm.launcher.server;
 
+import com.hmdm.launcher.ui.Admin.AppConfiguration;
 import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeleteApplicationFragment;
@@ -114,12 +115,7 @@ public interface ServerApi {
         void onToken(String token);
     }
 
-    /**
-     * Interface for configuration list callbacks.
-     */
-    interface ConfigurationListCallback {
-        void onConfigurationList(List<ConfigurationListFragment.Configuration> configurations);
-    }
+
     interface DeviceStatsCallback {
         void onStats(int totalDevices, int enrolledDevices, int lastMonthEnrolled);
     }
@@ -139,7 +135,6 @@ public interface ServerApi {
     }
 
     void getApplications(ApplicationListCallback successCallback, ErrorCallback errorCallback);
-   void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback);
 
     /**
      * Interface for single application callbacks.
@@ -150,7 +145,12 @@ public interface ServerApi {
     }
     void getApplicationById(int applicationId, GetApplicationIdCallback callback);
 
+    interface GetConfigurationsCallback {
+        void onSuccess(List<AppConfiguration> configurations);
+        void onError(String error);
+    }
 
+    void getApplicationConfigurations(int applicationId, GetConfigurationsCallback callback);
 
 
 
@@ -179,15 +179,23 @@ public interface ServerApi {
         void onUpdateConfigSuccess(String message);
         void onError(String error);
     }
-    void updateConfigurations(int applicationId, String configName, UpdateConfigCallback callback);
+    void updateConfigurations(int applicationId, AppConfiguration config, boolean showIcon, UpdateConfigCallback callback);
+
+
+
+
+
+
+
+
+
 
 
 
 
     interface ApplicationConfigurationsCallback {
-        void onApplicationConfigurations(List<DeleteApplicationFragment.ApplicationConfiguration> configurations);
+        void onSuccess(List<DeleteApplicationFragment.ApplicationConfiguration> configurations);
     }
-
     class ApplicationConfigurationsUpdateRequest {
         private int applicationId;
         private List<DeleteApplicationFragment.ApplicationConfiguration> configurations;
@@ -200,7 +208,7 @@ public interface ServerApi {
         public int getApplicationId() { return applicationId; }
         public List<DeleteApplicationFragment.ApplicationConfiguration> getConfigurations() { return configurations; }
     }
-    void getApplicationConfigurations(int applicationId, ApplicationConfigurationsCallback successCallback, ErrorCallback errorCallback);
+   void getApplicationConfigurationsDelet(int applicationId, ApplicationConfigurationsCallback successCallback, ErrorCallback errorCallback);
     void updateApplicationConfigurations(ApplicationConfigurationsUpdateRequest request, SuccessCallback successCallback, ErrorCallback errorCallback);
     void deleteApplication(int applicationId, SuccessCallback successCallback, ErrorCallback errorCallback);
 
@@ -221,5 +229,30 @@ public interface ServerApi {
     void getFiles(FileListCallback successCallback, ErrorCallback errorCallback);
 
 
+
+
+//configuration
+    /**
+     * Interface for configuration list callbacks.
+     */
+    interface ConfigurationListCallback {
+        void onConfigurationList(List<ConfigurationListFragment.Configuration> configurations);
+    }
+    void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback);
+    // Callback pour copyConfiguration
+    interface CopyConfigurationCallback {
+        void onSuccess(String message);
+        void onError(String error);
+    }
+
+    void copyConfiguration(int configurationId, String newName, CopyConfigurationCallback callback);
+
+    // Callback pour deleteConfiguration
+    interface DeleteConfigurationCallback {
+        void onSuccess(String message);
+        void onError(String error);
+    }
+
+    void deleteConfiguration(int configurationId, DeleteConfigurationCallback callback);
 
 }

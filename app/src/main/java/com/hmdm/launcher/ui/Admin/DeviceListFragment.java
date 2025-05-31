@@ -168,10 +168,13 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
                 .setTitle("Options pour " + device.getName())
                 .setItems(new String[]{"Modifier", "Supprimer"}, (dialog, which) -> {
                     if (which == 0) {
-                        // Modifier: Naviguer vers ModifyDeviceFragment
+                        // Modifier: Naviguer vers ModifyDeviceFragment avec les données de l'appareil
                         Fragment fragment = new ModifyDeviceFragment();
                         Bundle args = new Bundle();
                         args.putInt("deviceId", device.getId());
+                        args.putString("deviceName", device.getName());
+                        args.putString("deviceNumber", device.getNumber());
+                        args.putInt("configurationId", device.getConfigurationId());
                         fragment.setArguments(args);
                         requireActivity().getSupportFragmentManager().beginTransaction()
                                 .replace(R.id.fragment_container, fragment)
