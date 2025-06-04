@@ -83,7 +83,7 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
         }else if (id == R.id.nav_geozones) {
             loadFragment(new AddApplicationFragment());
         }else if (id == R.id.nav_wipe_data) {
-            loadFragment(new DeleteApplicationFragment());
+            loadFragment(new DeleteAppFragment());
         }else if (id == R.id.nav_remote_control) {
             loadFragment(new DeviceDeleteFragment());
         }else if (id == R.id.nav_logout) {
