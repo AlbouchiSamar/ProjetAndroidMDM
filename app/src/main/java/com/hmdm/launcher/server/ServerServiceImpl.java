@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.hmdm.launcher.helper.SettingsHelper;
+import com.hmdm.launcher.ui.Admin.AddDeviceFragment;
 import com.hmdm.launcher.ui.Admin.AdminLoginActivity;
 import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
 import com.hmdm.launcher.ui.Admin.Configuration;
@@ -14,6 +15,7 @@ import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
 import com.hmdm.launcher.ui.Admin.FileListFragment;
+import com.hmdm.launcher.ui.Admin.GroupFragment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -240,6 +242,21 @@ public class ServerServiceImpl implements ServerApi {
 
                                 JSONObject info = item.optJSONObject("info");
                                 device.setModel(info != null ? info.optString("model", "Inconnu") : "Inconnu");
+
+                                // Parsing des groupes
+                                JSONArray groupsArray = item.optJSONArray("groups");
+                                if (groupsArray != null) {
+                                    List<DeviceListFragment.Device.Group> groups = new ArrayList<>();
+                                    for (int j = 0; j < groupsArray.length(); j++) {
+                                        JSONObject groupObj = groupsArray.optJSONObject(j);
+                                        if (groupObj != null) {
+                                            int groupId = groupObj.optInt("id", -1);
+                                            String groupName = groupObj.optString("name", "Inconnu");
+                                            groups.add(new DeviceListFragment.Device.Group(groupId, groupName));
+                                        }
+                                    }
+                                    device.setGroups(groups);
+                                }
 
                                 deviceList.add(device);
                             }
@@ -1344,70 +1361,7 @@ public class ServerServiceImpl implements ServerApi {
         });
     }
 
-  /*  @Override
-    public void updateConfigurations(int applicationId, AppConfiguration config, boolean showIcon, UpdateConfigCallback callback) {
-        try {
-            String endpoint = settingsHelper.getBaseUrl() + "/rest/private/applications/" + applicationId + "/configurations";
-            String token = settingsHelper.getAdminAuthToken();
 
-            if (token == null || token.isEmpty()) {
-                redirectToLogin();
-                if (callback != null) callback.onError("Token d'authentification manquant");
-                return;
-            }
-
-            JSONObject jsonBody = new JSONObject();
-            jsonBody.put("configurationId", config.getId());
-            jsonBody.put("name", config.getName());
-            jsonBody.put("showIcon", showIcon);
-
-            RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
-            Request request = new Request.Builder()
-                    .url(endpoint)
-                    .post(body)
-                    .addHeader("Authorization", "Bearer " + token)
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.e(TAG, "Erreur de connexion lors de la mise à jour des configurations", e);
-                    if (callback != null) callback.onError("Erreur de connexion: " + e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.code() == 401) {
-                        redirectToLogin();
-                        if (callback != null) callback.onError("Session expirée");
-                        return;
-                    }
-
-                    if (response.isSuccessful()) {
-                        String responseBody = response.body().string();
-                        try {
-                            JSONObject json = new JSONObject(responseBody);
-                            String message = json.getString("message");
-                            if (callback != null) callback.onUpdateConfigSuccess(message);
-                        } catch (Exception e) {
-                            Log.e(TAG, "Erreur lors du parsing de la réponse: " + responseBody, e);
-                            if (callback != null) callback.onError("Format de réponse invalide: " + e.getMessage());
-                        }
-                    } else {
-                        String errorMessage = "Erreur serveur: " + response.code();
-                        if (response.body() != null) {
-                            errorMessage += ", Détails: " + response.body().string();
-                        }
-                        Log.e(TAG, "Échec de la mise à jour des configurations: " + errorMessage);
-                        if (callback != null) callback.onError(errorMessage);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la préparation de la requête de mise à jour des configurations", e);
-            if (callback != null) callback.onError("Erreur interne: " + e.getMessage());
-        }
-    }*/
   @Override
   public void updateConfiguration(String requestBody, UpdateConfigurationCallback callback) {
       try {
@@ -1551,7 +1505,7 @@ public class ServerServiceImpl implements ServerApi {
 
     //configuration
     @Override
-    public void copyConfiguration(int configurationId, String newName, CopyConfigurationCallback callback) {
+    public void copyConfiguration(int configurationId, String newName, String newDescription, CopyConfigurationCallback callback) {
         try {
             String endpoint = settingsHelper.getBaseUrl() + "/rest/private/configurations/copy";
             String token = settingsHelper.getAdminAuthToken();
@@ -1562,12 +1516,11 @@ public class ServerServiceImpl implements ServerApi {
                 return;
             }
 
-            // Créer le corps de la requête avec uniquement les champs nécessaires
+            // Créer le corps de la requête avec nom et description
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("id", configurationId);
             jsonBody.put("name", newName);
-            // Les autres champs sont optionnels et non nécessaires pour une copie minimale
-            // Si le serveur exige d'autres champs, ils doivent être ajoutés ici
+            jsonBody.put("description", newDescription); // Ajout de la description
 
             Log.d(TAG, "Requête PUT envoyée à l'endpoint : " + endpoint);
             Log.d(TAG, "Corps de la requête : " + jsonBody.toString());
@@ -1689,4 +1642,349 @@ public class ServerServiceImpl implements ServerApi {
             callback.onError("Erreur interne: " + e.getMessage());
         }
     }
+
+
+
+    @Override
+    public void addDevice(String number, String description, int configurationId, String imei, String phone,
+                          List<GroupFragment.Group> groups, AddDeviceCallback callback) {
+        String endpoint = settingsHelper.getBaseUrl() + "/rest/private/devices";
+        String token = settingsHelper.getAdminAuthToken();
+
+        JSONObject deviceJson = new JSONObject();
+        try {
+            deviceJson.put("number", number);
+            deviceJson.put("description", description);
+            deviceJson.put("configurationId", configurationId);
+            deviceJson.put("imei", imei);
+            deviceJson.put("phone", phone);
+
+            JSONArray groupsArray = new JSONArray();
+            for (GroupFragment.Group group : groups) {
+                JSONObject groupJson = new JSONObject();
+                groupJson.put("id", group.getId());
+                groupsArray.put(groupJson);
+            }
+            deviceJson.put("groups", groupsArray);
+        } catch (Exception e) {
+            callback.onError("Erreur création payload: " + e.getMessage());
+            return;
+        }
+
+        RequestBody body = RequestBody.create(deviceJson.toString(),
+                MediaType.parse("application/json; charset=utf-8"));
+
+        Request request = new Request.Builder()
+                .url(endpoint)
+                .put(body) // Utilisation de PUT (ou POST si nécessaire, ajustez selon votre API)
+                .addHeader("Authorization", "Bearer " + token)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError("Erreur ajout appareil: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    callback.onSuccess();
+                } else {
+                    String error = response.body().string();
+                    callback.onError("Erreur serveur: " + response.code() + " - " + error);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void getConfigurationsDevice(GetConfigurationsCallback callback) {
+        try {
+            String url = settingsHelper.getBaseUrl() + "/rest/private/configurations/search";
+            String token = settingsHelper.getAdminAuthToken();
+
+            if (token == null || token.isEmpty()) {
+                redirectToLogin();
+                callback.onError("Token d'authentification manquant");
+                return;
+            }
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Authorization", "Bearer " + token)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Erreur de connexion lors de la récupération des configurations", e);
+                    callback.onError("Erreur de connexion: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.code() == 401) {
+                        redirectToLogin();
+                        callback.onError("Session expirée");
+                        return;
+                    }
+
+                    if (response.isSuccessful()) {
+                        String responseBody = response.body().string();
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            String status = jsonResponse.getString("status");
+                            if ("OK".equals(status)) {
+                                JSONArray data = jsonResponse.getJSONArray("data");
+                                List<AddDeviceFragment.Configuration> configurations = new ArrayList<>();
+                                for (int i = 0; i < data.length(); i++) {
+                                    JSONObject item = data.getJSONObject(i);
+                                    int id = item.getInt("id");
+                                    String name = item.optString("name", "Sans nom");
+                                    configurations.add(new AddDeviceFragment.Configuration(id, name));
+                                }
+                                callback.onConfigurationList(configurations);
+                            } else {
+                                callback.onError("Échec de la récupération: " + jsonResponse.optString("message", "Erreur inconnue"));
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erreur lors du parsing de la réponse", e);
+                            callback.onError("Format de réponse invalide: " + e.getMessage());
+                        }
+                    } else {
+                        String errorMessage;
+                        if (response.code() == 404) {
+                            errorMessage = "Configurations non trouvées";
+                        } else if (response.code() == 500) {
+                            errorMessage = "Erreur serveur interne";
+                        } else {
+                            errorMessage = "Erreur serveur: " + response.code();
+                        }
+                        if (response.body() != null) {
+                            errorMessage += ", Détails: " + response.body().string();
+                        }
+                        Log.e(TAG, "Échec de la récupération des configurations: " + errorMessage);
+                        callback.onError(errorMessage);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la préparation de la requête", e);
+            callback.onError("Erreur interne: " + e.getMessage());
+        }
+    }
+
+
+
+    //Groupe
+    @Override
+    public void getGroups(GetGroupsCallback callback) {
+        String endpoint = settingsHelper.getBaseUrl() + "/rest/private/groups/search";
+        String token = settingsHelper.getAdminAuthToken();
+
+        Request request = new Request.Builder()
+                .url(endpoint)
+                .get()
+                .addHeader("Authorization", "Bearer " + token)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError("Erreur récupération groupes: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String responseBody = response.body().string();
+                        JSONObject jsonResponse = new JSONObject(responseBody);
+                        String status = jsonResponse.getString("status");
+                        if ("OK".equals(status)) {
+                            JSONArray data = jsonResponse.getJSONArray("data");
+                            List<GroupFragment.Group> groups = new ArrayList<>();
+                            for (int i = 0; i < data.length(); i++) {
+                                JSONObject item = data.getJSONObject(i);
+                                int id = item.getInt("id");
+                                String name = item.getString("name");
+                                int customerId = item.getInt("customerId");
+                                boolean common = item.getBoolean("common");
+                                groups.add(new GroupFragment.Group(id, name, customerId, common));
+                            }
+                            callback.onGroupList(groups);
+                        } else {
+                            callback.onError("Échec récupération groupes: " + jsonResponse.optString("message"));
+                        }
+                    } catch (Exception e) {
+                        callback.onError("Erreur parsing groupes: " + e.getMessage());
+                    }
+                } else {
+                    callback.onError("Erreur serveur: " + response.code());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void searchGroups(String query, GetGroupsCallback callback) {
+        String endpoint = settingsHelper.getBaseUrl() + "/rest/private/groups/search/" + query;
+        String token = settingsHelper.getAdminAuthToken();
+
+        Request request = new Request.Builder()
+                .url(endpoint)
+                .get()
+                .addHeader("Authorization", "Bearer " + token)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError("Erreur recherche groupes: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String responseBody = response.body().string();
+                        JSONObject jsonResponse = new JSONObject(responseBody);
+                        String status = jsonResponse.getString("status");
+                        if ("OK".equals(status)) {
+                            JSONArray data = jsonResponse.getJSONArray("data");
+                            List<GroupFragment.Group> groups = new ArrayList<>();
+                            for (int i = 0; i < data.length(); i++) {
+                                JSONObject item = data.getJSONObject(i);
+                                int id = item.getInt("id");
+                                String name = item.getString("name");
+                                int customerId = item.getInt("customerId");
+                                boolean common = item.getBoolean("common");
+                                groups.add(new GroupFragment.Group(id, name, customerId, common));
+                            }
+                            callback.onGroupList(groups);
+                        } else {
+                            callback.onError("Échec recherche groupes: " + jsonResponse.optString("message"));
+                        }
+                    } catch (Exception e) {
+                        callback.onError("Erreur parsing recherche: " + e.getMessage());
+                    }
+                } else {
+                    callback.onError("Erreur serveur: " + response.code());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void addGroup(String name, AddGroupCallback callback) {
+        String endpoint = settingsHelper.getBaseUrl() + "/rest/private/groups";
+        String token = settingsHelper.getAdminAuthToken();
+
+        JSONObject groupJson = new JSONObject();
+        try {
+            groupJson.put("name", name);
+        } catch (Exception e) {
+            callback.onError("Erreur création payload: " + e.getMessage());
+            return;
+        }
+
+        RequestBody body = RequestBody.create(groupJson.toString(),
+                MediaType.parse("application/json; charset=utf-8"));
+
+        Request request = new Request.Builder()
+                .url(endpoint)
+                .put(body) // Utilisation de PUT comme spécifié
+                .addHeader("Authorization", "Bearer " + token)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError("Erreur ajout groupe: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    callback.onSuccess();
+                } else {
+                    callback.onError("Erreur serveur: " + response.code());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void updateGroup(int id, String name, int customerId, boolean common, AddGroupCallback callback) {
+        String endpoint = settingsHelper.getBaseUrl() + "/rest/private/groups";
+        String token = settingsHelper.getAdminAuthToken();
+
+        JSONObject groupJson = new JSONObject();
+        try {
+            groupJson.put("id", id);
+            groupJson.put("name", name);
+            groupJson.put("customerId", customerId);
+            groupJson.put("common", common);
+        } catch (Exception e) {
+            callback.onError("Erreur création payload: " + e.getMessage());
+            return;
+        }
+
+        RequestBody body = RequestBody.create(groupJson.toString(),
+                MediaType.parse("application/json; charset=utf-8"));
+
+        Request request = new Request.Builder()
+                .url(endpoint)
+                .put(body)
+                .addHeader("Authorization", "Bearer " + token)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError("Erreur modification groupe: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    callback.onSuccess();
+                } else {
+                    String errorBody = response.body() != null ? response.body().string() : "Aucun détail fourni";
+                    callback.onError("Erreur serveur: " + response.code() + " - " + errorBody);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void deleteGroup(int id, DeleteGroupCallback callback) {
+        String endpoint = settingsHelper.getBaseUrl() + "/rest/private/groups/" + id;
+        String token = settingsHelper.getAdminAuthToken();
+
+        Request request = new Request.Builder()
+                .url(endpoint)
+                .delete()
+                .addHeader("Authorization", "Bearer " + token)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError("Erreur suppression groupe: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    callback.onSuccess();
+                } else {
+                    callback.onError("Erreur serveur: " + response.code());
+                }
+            }
+        });
+    }
+
 }

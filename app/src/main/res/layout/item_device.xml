@@ -112,5 +112,12 @@
                 android:layout_marginStart="8dp" />
 
         </LinearLayout>
+        <TextView
+        android:id="@+id/text_groups"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"
+        android:textColor="?android:attr/textColorSecondary" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

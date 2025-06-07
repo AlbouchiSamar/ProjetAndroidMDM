@@ -223,11 +223,12 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         private String lastOnline;
         private String model;
         private int configurationId;
+        private List<Group> groups = new ArrayList<>(); // Ajout de la liste des groupes
 
         public Device() {
         }
 
-        public Device(int id, String number, String name, String status, String lastOnline, String model, int configurationId) {
+        public Device(int id, String number, String name, String status, String lastOnline, String model, int configurationId, List<Group> groups) {
             this.id = id;
             this.number = number;
             this.name = name;
@@ -235,6 +236,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
             this.lastOnline = lastOnline;
             this.model = model;
             this.configurationId = configurationId;
+            this.groups = groups != null ? groups : new ArrayList<>(); // Initialisation sécurisée
         }
 
         public int getId() { return id; }
@@ -251,5 +253,21 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         public void setModel(String model) { this.model = model; }
         public int getConfigurationId() { return configurationId; }
         public void setConfigurationId(int configurationId) { this.configurationId = configurationId; }
+        public List<Group> getGroups() { return groups; } // Getter pour les groupes
+        public void setGroups(List<Group> groups) { this.groups = groups != null ? groups : new ArrayList<>(); }
+
+        // Classe interne pour représenter un groupe
+        public static class Group {
+            private int id;
+            private String name;
+
+            public Group(int id, String name) {
+                this.id = id;
+                this.name = name;
+            }
+
+            public int getId() { return id; }
+            public String getName() { return name; }
+        }
     }
 }

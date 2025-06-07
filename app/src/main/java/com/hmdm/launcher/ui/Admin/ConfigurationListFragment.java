@@ -98,21 +98,25 @@ public class ConfigurationListFragment extends Fragment {
     }
 
     private void promptCopyConfiguration(ConfigurationListFragment.Configuration configuration) {
-        EditText input = new EditText(getContext());
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        input.setHint("Nouveau nom de la configuration");
+        // Inflater un layout personnalisé pour inclure nom et description
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_copy_configuration, null);
+        EditText editName = dialogView.findViewById(R.id.edit_new_name);
+        EditText editDescription = dialogView.findViewById(R.id.edit_new_description);
+        editName.setInputType(InputType.TYPE_CLASS_TEXT);
+        editDescription.setInputType(InputType.TYPE_CLASS_TEXT);
 
         new AlertDialog.Builder(getContext())
                 .setTitle("Copier la configuration")
-                .setMessage("Entrez le nouveau nom pour la copie de " + configuration.getName())
-                .setView(input)
+                .setMessage("Entrez le nouveau nom et la description pour la copie de " + configuration.getName())
+                .setView(dialogView)
                 .setPositiveButton("Copier", (dialog, which) -> {
-                    String newName = input.getText().toString().trim();
-                    if (newName.isEmpty()) {
-                        Toast.makeText(getContext(), "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                    String newName = editName.getText().toString().trim();
+                    String newDescription = editDescription.getText().toString().trim();
+                    if (newName.isEmpty() || newDescription.isEmpty()) {
+                        Toast.makeText(getContext(), "Le nom et la description ne peuvent pas être vides", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    copyConfiguration(configuration, newName);
+                    copyConfiguration(configuration, newName, newDescription);
                 })
                 .setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss())
                 .show();
@@ -127,9 +131,9 @@ public class ConfigurationListFragment extends Fragment {
                 .show();
     }
 
-    private void copyConfiguration(ConfigurationListFragment.Configuration configuration, String newName) {
+    private void copyConfiguration(ConfigurationListFragment.Configuration configuration, String newName, String newDescription) {
         progressBar.setVisibility(View.VISIBLE);
-        serverService.copyConfiguration(configuration.getId(), newName, new ServerApi.CopyConfigurationCallback() {
+        serverService.copyConfiguration(configuration.getId(), newName, newDescription, new ServerApi.CopyConfigurationCallback() {
             @Override
             public void onSuccess(String message) {
                 getActivity().runOnUiThread(() -> {

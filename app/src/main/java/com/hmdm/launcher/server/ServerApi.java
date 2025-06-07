@@ -1,12 +1,14 @@
 package com.hmdm.launcher.server;
 
 
+import com.hmdm.launcher.ui.Admin.AddDeviceFragment;
 import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
 import com.hmdm.launcher.ui.Admin.Configuration;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeleteAppFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
 import com.hmdm.launcher.ui.Admin.FileListFragment;
+import com.hmdm.launcher.ui.Admin.GroupFragment;
 
 import org.json.JSONObject;
 
@@ -131,7 +133,13 @@ public interface ServerApi {
     interface ApplicationListCallback {
         void onApplicationList(List<ApplicationListFragment.Application> applications);
     }
-
+    // Callback pour l'ajout d'un appareil
+    interface AddDeviceCallback {
+        void onSuccess();
+        void onError(String error);
+    }
+    void addDevice(String number, String description, int configurationId, String imei, String phone,
+                   List<GroupFragment.Group> groups, AddDeviceCallback callback);
     void getApplications(ApplicationListCallback successCallback, ErrorCallback errorCallback);
 
     /**
@@ -266,14 +274,19 @@ public interface ServerApi {
         void onConfigurationList(List<ConfigurationListFragment.Configuration> configurations);
     }
     void getConfigurations(ConfigurationListCallback successCallback, ErrorCallback errorCallback);
+    interface GetConfigurationsCallback {
+        void onConfigurationList(List<AddDeviceFragment.Configuration> configurations);
+        void onError(String error);
+    }
+    void getConfigurationsDevice(GetConfigurationsCallback callback);
+
     // Callback pour copyConfiguration
     interface CopyConfigurationCallback {
         void onSuccess(String message);
         void onError(String error);
     }
 
-    void copyConfiguration(int configurationId, String newName, CopyConfigurationCallback callback);
-
+    void copyConfiguration(int configurationId, String newName, String newDescription, CopyConfigurationCallback callback);
     // Callback pour deleteConfiguration
     interface DeleteConfigurationCallback {
         void onSuccess(String message);
@@ -282,4 +295,31 @@ public interface ServerApi {
 
     void deleteConfiguration(int configurationId, DeleteConfigurationCallback callback);
 
+
+
+
+//Groupe
+    // Callback pour la récupération des groupes
+    interface GetGroupsCallback {
+        void onGroupList(List<GroupFragment.Group> groups);
+        void onError(String error);
+    }
+
+    // Callback pour l'ajout/modification d'un groupe
+    interface AddGroupCallback {
+        void onSuccess();
+        void onError(String error);
+    }
+
+    // Callback pour la suppression d'un groupe
+    interface DeleteGroupCallback {
+        void onSuccess();
+        void onError(String error);
+    }
+
+    // Méthodes à implémenter dans ServerServiceImpl
+    void getGroups(GetGroupsCallback callback);
+    void searchGroups(String query, GetGroupsCallback callback);
+    void addGroup(String name, AddGroupCallback callback);
+    void updateGroup(int id, String name, int customerId, boolean common, AddGroupCallback callback);    void deleteGroup(int id, DeleteGroupCallback callback);
 }

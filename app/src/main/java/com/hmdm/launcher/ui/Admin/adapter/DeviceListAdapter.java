@@ -60,6 +60,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
         private TextView statusText;
         private TextView configNameText;
         private TextView configurationIdText;
+        private TextView groupsText; // Ajout pour afficher les groupes
 
         public DeviceViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -70,6 +71,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
             statusText = itemView.findViewById(R.id.text_status);
             configNameText = itemView.findViewById(R.id.text_config_name);
             configurationIdText = itemView.findViewById(R.id.text_configuration_id);
+            groupsText = itemView.findViewById(R.id.text_groups); // Ajout de l'ID pour les groupes
         }
 
         public void bind(final DeviceListFragment.Device device, final OnDeviceClickListener listener) {
@@ -80,6 +82,21 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.De
             statusText.setText(device.getStatus() != null ? device.getStatus() : "Inconnu");
             configNameText.setText(device.getModel() != null ? device.getModel() : "Inconnu");
             configurationIdText.setText(device.getConfigurationId() != -1 ? String.valueOf(device.getConfigurationId()) : "Inconnu");
+
+            // Affichage des groupes
+            List<DeviceListFragment.Device.Group> groups = device.getGroups();
+            if (groups != null && !groups.isEmpty()) {
+                StringBuilder groupsTextContent = new StringBuilder("Groupes : ");
+                for (int i = 0; i < groups.size(); i++) {
+                    groupsTextContent.append(groups.get(i).getName()).append(" (ID: ").append(groups.get(i).getId()).append(")");
+                    if (i < groups.size() - 1) {
+                        groupsTextContent.append(", ");
+                    }
+                }
+                groupsText.setText(groupsTextContent.toString());
+            } else {
+                groupsText.setText("Groupes : Aucun groupe");
+            }
 
             if ("En ligne".equals(device.getStatus())) {
                 statusText.setTextColor(itemView.getContext().getResources().getColor(R.color.colorOnline));
