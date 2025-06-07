@@ -75,7 +75,6 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
             loadFragment(new ConfigurationListFragment());
         }else if (id == R.id.nav_dashboard) {
             loadFragment(new DeviceStatsFragment());
-
         }
         else if (id == R.id.nav_devices_list) {
             loadFragment(new ApplicationListFragment());
@@ -84,12 +83,11 @@ public class AdminMainActivity extends AppCompatActivity implements NavigationVi
         }else if (id == R.id.nav_wipe_data) {
             loadFragment(new DeleteAppFragment());
         }else if (id == R.id.nav_remote_control) {
-            loadFragment(new DeviceDeleteFragment());
+            loadFragment(new SendMessageFragment());
         }else if (id == R.id.nav_logout) {
             logout();
         }else if (id == R.id.nav_logs) {
             loadFragment(new GroupFragment());
-
         }
         else if (id == R.id.nav_add) {
             loadFragment(new AddDeviceFragment());

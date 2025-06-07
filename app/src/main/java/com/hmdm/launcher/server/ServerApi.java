@@ -3,12 +3,14 @@ package com.hmdm.launcher.server;
 
 import com.hmdm.launcher.ui.Admin.AddDeviceFragment;
 import com.hmdm.launcher.ui.Admin.ApplicationListFragment;
+import com.hmdm.launcher.ui.Admin.AuditFragment;
 import com.hmdm.launcher.ui.Admin.Configuration;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeleteAppFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
 import com.hmdm.launcher.ui.Admin.FileListFragment;
 import com.hmdm.launcher.ui.Admin.GroupFragment;
+import com.hmdm.launcher.ui.Admin.SendMessageFragment;
 
 import org.json.JSONObject;
 
@@ -322,4 +324,32 @@ public interface ServerApi {
     void searchGroups(String query, GetGroupsCallback callback);
     void addGroup(String name, AddGroupCallback callback);
     void updateGroup(int id, String name, int customerId, boolean common, AddGroupCallback callback);    void deleteGroup(int id, DeleteGroupCallback callback);
+
+
+//Message
+interface SendMessageCallback {
+    void onSuccess(String message);
+    void onError(String error);
+}
+
+    void sendMessage(String scope, String deviceNumber, int groupId, int configurationId, String message, SendMessageCallback callback);
+
+    interface MessageHistoryCallback {
+        void onMessageList(List<SendMessageFragment.Message> messages);
+    }
+
+    void getMessageHistory(MessageHistoryCallback successCallback, ErrorCallback errorCallback);
+
+
+
+
+
+
+
+    //journeaux
+    interface AuditCallback {
+        void onSuccess(List<AuditFragment.AuditLog> auditLogs);
+    }
+    void searchAuditLogs(int pageNum, int pageSize, Integer customerId, String messageFilter,
+                         Long dateFrom, Long dateTo, AuditCallback successCallback, ErrorCallback errorCallback);
 }
