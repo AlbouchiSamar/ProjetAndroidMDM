@@ -1,47 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:checkableBehavior="single">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+    <group android:checkableBehavior="single" >
 
-
-        <item
-            android:id="@+id/nav_devices"
-            android:icon="@drawable/ic_devices"
-            android:title="@string/Devices" />
-        <item
-            android:id="@+id/nav_devices_list"
-            android:icon="@drawable/ic_devices"
-            android:title="@string/list_des_applications" />
-        <item
-            android:id="@+id/nav_logs"
-            android:icon="@drawable/ic_logs"
-            android:title="@string/Files_List"
-             />
-        <item
-            android:id="@+id/nav_configurations"
-            android:icon="@drawable/ic_configurations"
-            android:title="@string/configurations_List"
-             />
-        <item
-            android:id="@+id/nav_remote_control"
-            android:icon="@drawable/ic_remote_control"
-            android:title="@string/Update_Device"
-            />
-        <item
-            android:id="@+id/nav_add"
-            android:icon="@drawable/ic_map"
-            android:title="@string/Add_application" />
-        <item
-            android:id="@+id/nav_geozones"
-            android:icon="@drawable/ic_geozones"
-            android:title="@string/Add_File" />
-        <item
-            android:id="@+id/nav_wipe_data"
-            android:icon="@drawable/ic_wipe_data"
-            android:title="@string/Delete_Application" />
         <item
             android:id="@+id/nav_dashboard"
             android:icon="@drawable/ic_dashboard"
-            android:title="@string/dashboard" />
+            android:title="@string/dashboard"
+            android:textColor="#1E3A8A"
+            />
+        <item
+            android:id="@+id/nav_devices"
+            android:icon="@drawable/ic_devices"
+            android:title="@string/Devices"
+            android:textColor="#1E3A8A"
+            />
+        <item
+            android:id="@+id/nav_devices_list"
+            android:icon="@drawable/ic_devices"
+            android:title="Application"
+            android:textColor="#1E3A8A"
+            />
+        <item
+            android:id="@+id/nav_configurations"
+            android:icon="@drawable/ic_configurations"
+            android:title="Configuration"
+            android:textColor="#1E3A8A"
+            />
+        <item
+            android:id="@+id/nav_logs"
+            android:icon="@drawable/ic_remote_control"
+            android:title="@string/Groupes"
+            android:textColor="#1E3A8A"
+            />
+        <item
+            android:id="@+id/nav_remote_control"
+            android:icon="@drawable/ic_geozones"
+            android:title="@string/Messages"
+            android:textColor="#1E3A8A"
+            />
+        <item
+            android:id="@+id/nav_audit"
+            android:icon="@drawable/ic_logs"
+            android:textColor="#1E3A8A"
+            android:title="Audit Log" />
+
+
+
+
     </group>
 
     <item android:title="@string/account">
@@ -49,7 +55,9 @@
             <item
                 android:id="@+id/nav_logout"
                 android:icon="@drawable/ic_logout"
-                android:title="@string/logout" />
+                android:title="Logout"
+                android:textColor="#1E3A8A"
+                />
         </menu>
     </item>
 </menu>

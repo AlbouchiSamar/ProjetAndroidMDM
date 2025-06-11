@@ -50,7 +50,7 @@ public class AdminLoginActivity extends AppCompatActivity {
             String password = passwordEdit.getText().toString().trim();
 
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Veuillez saisir un nom d'utilisateur et un mot de passe", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please enter a username and password", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -59,20 +59,17 @@ public class AdminLoginActivity extends AppCompatActivity {
     }
 
     private void attemptLogin(String username, String password) {
-        if (username.length() < 3 || password.length() < 5
-        ) {
-            Toast.makeText(this, "Le nom d'utilisateur doit avoir au moins 3 caractères et le mot de passe 6", Toast.LENGTH_SHORT).show();
+        if (username.length() < 3 || password.length() < 6) {
+            Toast.makeText(this, "Username must be at least 3 characters and password 6", Toast.LENGTH_SHORT).show();
             return;
         }
         showProgress(true);
 
         serverService.adminLogin(username, password, token -> {
-            // Stocker le token d'authentification
             settingsHelper.setAdminAuthToken(token);
 
             runOnUiThread(() -> {
                 showProgress(false);
-                // Rediriger vers l'écran principal d'administration
                 Intent intent = new Intent(AdminLoginActivity.this, AdminMainActivity.class);
                 startActivity(intent);
                 finish();
@@ -80,7 +77,7 @@ public class AdminLoginActivity extends AppCompatActivity {
         }, error -> {
             runOnUiThread(() -> {
                 showProgress(false);
-                Toast.makeText(this, "Échec de l'authentification: " + error, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Authentication failed: " + error, Toast.LENGTH_LONG).show();
             });
         });
     }

@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +34,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
     private ProgressBar progressBar;
     private TextView emptyView;
     private SearchView searchView;
+    private Button btnAddDevice;
     private DeviceListAdapter adapter;
     private List<Device> allDevices = new ArrayList<>();
     private List<Device> devices = new ArrayList<>();
@@ -50,6 +52,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         initViews(view);
         setupRecyclerView();
         setupSearchView();
+        setupAddDeviceButton();
         loadDevices();
         return view;
     }
@@ -60,7 +63,8 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         progressBar = view.findViewById(R.id.progress_bar);
         emptyView = view.findViewById(R.id.empty_view);
         searchView = view.findViewById(R.id.search_view);
-        Log.d(TAG, "Vues initialisées: searchView=" + (searchView != null) + ", recyclerView=" + (recyclerView != null) + ", progressBar=" + (progressBar != null));
+        btnAddDevice = view.findViewById(R.id.btn_add_device);
+        Log.d(TAG, "Vues initialisées: searchView=" + (searchView != null) + ", recyclerView=" + (recyclerView != null) + ", progressBar=" + (progressBar != null) + ", btnAddDevice=" + (btnAddDevice != null));
         swipeRefreshLayout.setOnRefreshListener(this::loadDevices);
     }
 
@@ -72,6 +76,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
     }
 
     private void setupSearchView() {
+        searchView.setQueryHint("Appareil à rechercher"); // Définir le hint initial
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -89,8 +94,23 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         });
         searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
             Log.d(TAG, "SearchView focus changé: " + hasFocus);
+            if (hasFocus) {
+                searchView.setQuery("", false); // Efface le texte si focus obtenu
+                searchView.setQueryHint("Appareil à rechercher"); // Réassure le hint
+            }
         });
         searchView.requestFocus();
+    }
+
+    private void setupAddDeviceButton() {
+        btnAddDevice.setOnClickListener(v -> {
+            Log.d(TAG, "Bouton Add Device cliqué");
+            Fragment fragment = new AddDeviceFragment();
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .addToBackStack(null)
+                    .commit();
+        });
     }
 
     private void loadDevices() {
@@ -115,7 +135,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
                 error -> {
                     requireActivity().runOnUiThread(() -> {
                         showProgress(false);
-                        Toast.makeText(requireContext(), "Erreur lors du chargement des appareils: " + error, Toast.LENGTH_LONG).show();
+                        Toast.makeText(requireContext(), "Error loading devices: " + error, Toast.LENGTH_LONG).show();
                         updateEmptyView();
                         isLoading = false;
                     });
@@ -128,7 +148,8 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         List<Device> filteredList = new ArrayList<>();
         for (Device device : allDevices) {
             String id = String.valueOf(device.getId());
-            if (TextUtils.isEmpty(query) || id.contains(query)) {
+            String number = device.getNumber() != null ? device.getNumber() : "";
+            if (TextUtils.isEmpty(query) || id.contains(query) || number.contains(query)) {
                 filteredList.add(device);
                 Log.d(TAG, "Appareil inclus: ID=" + device.getId() + ", Number=" + device.getNumber() + ", Name=" + device.getName());
             }
@@ -161,14 +182,34 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
     @Override
     public void onDeviceClick(Device device) {
         if (!isAdded() || getActivity() == null) {
-            Log.w(TAG, "Fragment détaché, dialogue ignoré");
+            Log.w(TAG, "Fragment detached, dialog ignored");
             return;
         }
+
+        // Initial dialog for options
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_alert, null);
+        TextView title = dialogView.findViewById(R.id.alert_title);
+        TextView message = dialogView.findViewById(R.id.alert_message);
+        Button btnNegative = dialogView.findViewById(R.id.btn_negative);
+        Button btnPositive = dialogView.findViewById(R.id.btn_positive);
+
+        title.setText("Options for " + device.getName());
+        message.setText("Choose an action:");
+        btnNegative.setOnClickListener(v -> ((AlertDialog) btnNegative.getTag()).dismiss());
+        btnPositive.setVisibility(View.GONE); // Hide positive button initially
+
+        AlertDialog optionsDialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+        btnNegative.setTag(optionsDialog);
+
+        // Custom list items
+        String[] options = {"Modify", "Delete"};
         new AlertDialog.Builder(requireContext())
-                .setTitle("Options pour " + device.getName())
-                .setItems(new String[]{"Modifier", "Supprimer"}, (dialog, which) -> {
+                .setItems(options, (dialog, which) -> {
+                    optionsDialog.dismiss();
                     if (which == 0) {
-                        // Modifier: Naviguer vers ModifyDeviceFragment avec les données de l'appareil
+                        // Modify: Navigate to ModifyDeviceFragment with device data
                         Fragment fragment = new ModifyDeviceFragment();
                         Bundle args = new Bundle();
                         args.putInt("deviceId", device.getId());
@@ -180,36 +221,51 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
                                 .replace(R.id.fragment_container, fragment)
                                 .addToBackStack(null)
                                 .commit();
-                        Toast.makeText(requireContext(), "Navigation vers la modification de l'appareil ID: " + device.getId(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Navigating to modify device ID: " + device.getId(), Toast.LENGTH_SHORT).show();
                     } else if (which == 1) {
-                        // Supprimer: Afficher la boîte de dialogue de confirmation
-                        new AlertDialog.Builder(requireContext())
-                                .setTitle("Confirmer la suppression")
-                                .setMessage("Voulez-vous vraiment supprimer " + device.getName() + " (ID: " + device.getId() + ") ?")
-                                .setPositiveButton("Oui", (dialog1, which1) -> {
-                                    progressBar.setVisibility(View.VISIBLE);
-                                    serverService.deleteDevice(
-                                            String.valueOf(device.getId()),
-                                            settingsHelper.getAdminAuthToken(),
-                                            message -> {
-                                                requireActivity().runOnUiThread(() -> {
-                                                    progressBar.setVisibility(View.GONE);
-                                                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
-                                                    Log.d(TAG, "Suppression réussie: " + message);
-                                                    loadDevices();
-                                                });
-                                            },
-                                            error -> {
-                                                requireActivity().runOnUiThread(() -> {
-                                                    progressBar.setVisibility(View.GONE);
-                                                    Toast.makeText(requireContext(), "Erreur de suppression: " + error, Toast.LENGTH_LONG).show();
-                                                    Log.e(TAG, "Erreur de suppression: " + error);
-                                                });
-                                            }
-                                    );
-                                })
-                                .setNegativeButton("Non", null)
-                                .show();
+                        // Delete: Show confirmation dialog
+                        View confirmDialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_alert, null);
+                        TextView confirmTitle = confirmDialogView.findViewById(R.id.alert_title);
+                        TextView confirmMessage = confirmDialogView.findViewById(R.id.alert_message);
+                        Button confirmNegative = confirmDialogView.findViewById(R.id.btn_negative);
+                        Button confirmPositive = confirmDialogView.findViewById(R.id.btn_positive);
+
+                        confirmTitle.setText("Confirm Deletion");
+                        confirmMessage.setText("Are you sure you want to delete " + device.getName() + " (ID: " + device.getId() + ")?");
+                        confirmPositive.setVisibility(View.VISIBLE);
+                        confirmPositive.setText("Yes");
+                        confirmPositive.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_red_light));
+                        confirmPositive.setOnClickListener(v -> {
+                            progressBar.setVisibility(View.VISIBLE);
+                            serverService.deleteDevice(
+                                    String.valueOf(device.getId()),
+                                    settingsHelper.getAdminAuthToken(),
+                                    successMessage -> {
+                                        requireActivity().runOnUiThread(() -> {
+                                            progressBar.setVisibility(View.GONE);
+                                            Toast.makeText(requireContext(), successMessage, Toast.LENGTH_LONG).show();
+                                            Log.d(TAG, "Deletion successful: " + successMessage);
+                                            loadDevices();
+                                        });
+                                    },
+                                    error -> {
+                                        requireActivity().runOnUiThread(() -> {
+                                            progressBar.setVisibility(View.GONE);
+                                            Toast.makeText(requireContext(), "Deletion error: " + error, Toast.LENGTH_LONG).show();
+                                            Log.e(TAG, "Deletion error: " + error);
+                                        });
+                                    }
+                            );
+                            ((AlertDialog) confirmNegative.getTag()).dismiss();
+                        });
+
+                        AlertDialog confirmDialog = new AlertDialog.Builder(requireContext())
+                                .setView(confirmDialogView)
+                                .create();
+                        confirmNegative.setTag(confirmDialog);
+                        confirmNegative.setText("No");
+                        confirmNegative.setOnClickListener(v -> confirmDialog.dismiss());
+                        confirmDialog.show();
                     }
                 })
                 .show();
@@ -223,10 +279,9 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         private String lastOnline;
         private String model;
         private int configurationId;
-        private List<Group> groups = new ArrayList<>(); // Ajout de la liste des groupes
+        private List<Group> groups = new ArrayList<>();
 
-        public Device() {
-        }
+        public Device() {}
 
         public Device(int id, String number, String name, String status, String lastOnline, String model, int configurationId, List<Group> groups) {
             this.id = id;
@@ -236,7 +291,7 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
             this.lastOnline = lastOnline;
             this.model = model;
             this.configurationId = configurationId;
-            this.groups = groups != null ? groups : new ArrayList<>(); // Initialisation sécurisée
+            this.groups = groups != null ? groups : new ArrayList<>();
         }
 
         public int getId() { return id; }
@@ -253,10 +308,9 @@ public class DeviceListFragment extends Fragment implements DeviceListAdapter.On
         public void setModel(String model) { this.model = model; }
         public int getConfigurationId() { return configurationId; }
         public void setConfigurationId(int configurationId) { this.configurationId = configurationId; }
-        public List<Group> getGroups() { return groups; } // Getter pour les groupes
+        public List<Group> getGroups() { return groups; }
         public void setGroups(List<Group> groups) { this.groups = groups != null ? groups : new ArrayList<>(); }
 
-        // Classe interne pour représenter un groupe
         public static class Group {
             private int id;
             private String name;

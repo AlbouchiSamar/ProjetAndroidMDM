@@ -1,60 +1,316 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@drawable/gradient_background">
 
-    <EditText
-        android:id="@+id/edit_number"
+    <!-- Simulated Status Bar -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Numéro de l'appareil"
-        android:inputType="text" />
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
-    <EditText
-        android:id="@+id/edit_description"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Description"
-        android:inputType="text" />
+               <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
-    <EditText
-        android:id="@+id/edit_imei"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="IMEI (15 chiffres)"
-        android:inputType="number" />
 
-    <EditText
-        android:id="@+id/edit_phone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Numéro de téléphone"
-        android:inputType="phone" />
 
-    <Spinner
-        android:id="@+id/spinner_configuration"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:prompt="@string/prompt_choose_configuration" />
+    </LinearLayout>
 
-    <TextView
-        android:id="@+id/text_selected_groups"
+    <!-- Main CardView Container -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Groupes sélectionnés : Aucun"
-        android:padding="8dp" />
-    <Button
-        android:id="@+id/btn_choose_groups"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Choisir un groupe" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        android:background="#FFFFFF">
 
-    <Button
-        android:id="@+id/btn_add_device"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Ajouter Appareil" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="#FFFFFF">
+
+            <!-- Blue Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#1E3A8A"
+                android:padding="20dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ADD DEVICE"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1" />
+
+            </LinearLayout>
+
+            <!-- Scrollable Content -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:padding="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Device Number -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_device"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Device number icon" />
+
+                        <EditText
+                            android:id="@+id/edit_number"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Device Number"
+                            android:textColor="#1E3A8A"
+                            android:textColorHint="#94A3B8"
+                            android:background="@null"
+                            android:inputType="text"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Description -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_description"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Description icon" />
+
+                        <EditText
+                            android:id="@+id/edit_description"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Description"
+                            android:textColor="#1E3A8A"
+                            android:textColorHint="#94A3B8"
+                            android:background="@null"
+                            android:inputType="text"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- IMEI -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_imei"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="IMEI icon" />
+
+                        <EditText
+                            android:id="@+id/edit_imei"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="IMEI (15 digits)"
+                            android:textColor="#1E3A8A"
+                            android:textColorHint="#94A3B8"
+                            android:background="@null"
+                            android:inputType="number"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Phone Number -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_phone"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Phone number icon" />
+
+                        <EditText
+                            android:id="@+id/edit_phone"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Phone Number"
+                            android:textColor="#1E3A8A"
+                            android:textColorHint="#94A3B8"
+                            android:background="@null"
+                            android:inputType="phone"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Configuration Spinner -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_settings"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Configuration icon" />
+
+                        <Spinner
+                            android:id="@+id/spinner_configuration"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:prompt="@string/prompt_choose_configuration"
+                            android:background="@null"
+                            android:textColor="#1E3A8A" />
+
+                    </LinearLayout>
+
+                    <!-- Selected Groups -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="24dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_group"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Selected groups icon" />
+
+                        <TextView
+                            android:id="@+id/text_selected_groups"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Selected Groups: None"
+                            android:textColor="#94A3B8"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Action Buttons -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <!-- Choose Group Button -->
+                        <Button
+                            android:id="@+id/btn_choose_groups"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="CHOOSE GROUP"
+                            android:textColor="#FFFFFF"
+                            android:backgroundTint="#1E3A8A"
+                            android:textAllCaps="true"
+                            android:textStyle="bold"
+                            android:padding="16dp"
+                            android:layout_marginBottom="12dp"
+                            android:elevation="2dp" />
+
+                        <!-- Add Device Button -->
+                        <Button
+                            android:id="@+id/btn_add_device"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="ADD DEVICE"
+                            android:textColor="#FFFFFF"
+                            android:backgroundTint="#10B981"
+                            android:textAllCaps="true"
+                            android:textStyle="bold"
+                            android:padding="16dp"
+                            android:layout_marginBottom="12dp"
+                            android:elevation="2dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <View
+                                android:layout_width="40dp"
+                                android:layout_height="4dp"
+                                android:layout_gravity="center"
+                                android:layout_marginTop="8dp"
+                                android:background="#FF6B35" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </ScrollView>
+
+            <!-- Bottom Indicator -->
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
 
 </LinearLayout>

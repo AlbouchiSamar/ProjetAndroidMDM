@@ -248,7 +248,10 @@
     <string name="Add_File" translatable="false">Add File</string>
     <string name="Add_application" translatable="false">Add Application</string>
     <string name="prompt_choose_configuration" translatable="false">"Choisir configuration "</string>
-    <string name="prompt_choose_group">"Choisir groupe\n "</string>
+    <string name="prompt_choose_group" translatable="false">"Choisir groupe\n "</string>
+    <string name="Groupes" translatable="false">Groupes</string>
+    <string name="Messages" translatable="false">Messages</string>
+    <string name="Audites" translatable="false">Audit</string>
 
 
 </resources><!-- Entrées à ajouter dans res/values/strings.xml -->

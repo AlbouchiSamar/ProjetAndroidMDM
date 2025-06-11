@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -74,7 +75,7 @@ public class ConfigurationListFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            Log.d(TAG, "Rafraîchissement déclenché");
+            Log.d(TAG, "Refresh triggered");
             fetchConfigurations();
         });
 
@@ -84,51 +85,95 @@ public class ConfigurationListFragment extends Fragment {
     }
 
     private void onConfigurationClicked(ConfigurationListFragment.Configuration configuration) {
-        new AlertDialog.Builder(getContext())
-                .setTitle("Options pour " + configuration.getName())
-                .setItems(new String[]{"Copier", "Supprimer"}, (dialog, which) -> {
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_custom_alert, null);
+        TextView title = dialogView.findViewById(R.id.alert_title);
+        TextView message = dialogView.findViewById(R.id.alert_message);
+        Button btnNegative = dialogView.findViewById(R.id.btn_negative);
+        Button btnPositive = dialogView.findViewById(R.id.btn_positive);
+
+        title.setText("Options for " + configuration.getName());
+        message.setText("Choose an action:");
+        btnNegative.setOnClickListener(v -> ((AlertDialog) btnNegative.getTag()).dismiss());
+        btnPositive.setVisibility(View.GONE); // Hide positive button initially
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setView(dialogView)
+                .create();
+        btnNegative.setTag(dialog);
+
+        // Custom list items
+        String[] options = {"Copy", "Delete"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext())
+                .setItems(options, (dialog1, which) -> {
                     if (which == 0) {
-                        promptCopyConfiguration(configuration);
+                        promptCopyConfiguration(configuration, dialogView);
                     } else if (which == 1) {
-                        confirmDeleteConfiguration(configuration);
+                        confirmDeleteConfiguration(configuration, dialogView);
                     }
-                })
-                .setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss())
-                .show();
+                    dialog.dismiss();
+                });
+        builder.show();
     }
 
-    private void promptCopyConfiguration(ConfigurationListFragment.Configuration configuration) {
-        // Inflater un layout personnalisé pour inclure nom et description
-        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_copy_configuration, null);
+    private void promptCopyConfiguration(ConfigurationListFragment.Configuration configuration, View dialogView) {
+        TextView title = dialogView.findViewById(R.id.alert_title);
+        TextView message = dialogView.findViewById(R.id.alert_message);
         EditText editName = dialogView.findViewById(R.id.edit_new_name);
         EditText editDescription = dialogView.findViewById(R.id.edit_new_description);
+        Button btnNegative = dialogView.findViewById(R.id.btn_negative);
+        Button btnPositive = dialogView.findViewById(R.id.btn_positive);
+
+        title.setText("Copy Configuration");
+        message.setText("Enter the new name and description for the copy of " + configuration.getName());
+        editName.setVisibility(View.VISIBLE);
+        editDescription.setVisibility(View.VISIBLE);
         editName.setInputType(InputType.TYPE_CLASS_TEXT);
         editDescription.setInputType(InputType.TYPE_CLASS_TEXT);
+        btnPositive.setVisibility(View.VISIBLE);
+        btnPositive.setText("Copy");
+        btnPositive.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_green_light)); // Temp green
+        btnPositive.setOnClickListener(v -> {
+            String newName = editName.getText().toString().trim();
+            String newDescription = editDescription.getText().toString().trim();
+            if (newName.isEmpty() || newDescription.isEmpty()) {
+                Toast.makeText(getContext(), "Name and description cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            copyConfiguration(configuration, newName, newDescription);
+            ((AlertDialog) btnNegative.getTag()).dismiss();
+        });
 
-        new AlertDialog.Builder(getContext())
-                .setTitle("Copier la configuration")
-                .setMessage("Entrez le nouveau nom et la description pour la copie de " + configuration.getName())
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
                 .setView(dialogView)
-                .setPositiveButton("Copier", (dialog, which) -> {
-                    String newName = editName.getText().toString().trim();
-                    String newDescription = editDescription.getText().toString().trim();
-                    if (newName.isEmpty() || newDescription.isEmpty()) {
-                        Toast.makeText(getContext(), "Le nom et la description ne peuvent pas être vides", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    copyConfiguration(configuration, newName, newDescription);
-                })
-                .setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss())
-                .show();
+                .create();
+        btnNegative.setTag(dialog);
+        btnNegative.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
-    private void confirmDeleteConfiguration(ConfigurationListFragment.Configuration configuration) {
-        new AlertDialog.Builder(getContext())
-                .setTitle("Supprimer la configuration")
-                .setMessage("Êtes-vous sûr de vouloir supprimer " + configuration.getName() + " ?")
-                .setPositiveButton("Oui", (dialog, which) -> deleteConfiguration(configuration))
-                .setNegativeButton("Non", (dialog, which) -> dialog.dismiss())
-                .show();
+    private void confirmDeleteConfiguration(ConfigurationListFragment.Configuration configuration, View dialogView) {
+        TextView title = dialogView.findViewById(R.id.alert_title);
+        TextView message = dialogView.findViewById(R.id.alert_message);
+        Button btnNegative = dialogView.findViewById(R.id.btn_negative);
+        Button btnPositive = dialogView.findViewById(R.id.btn_positive);
+
+        title.setText("Delete Configuration");
+        message.setText("Are you sure you want to delete " + configuration.getName() + "?");
+        btnPositive.setVisibility(View.VISIBLE);
+        btnPositive.setText("Yes");
+        btnPositive.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_red_light)); // Temp red
+        btnPositive.setOnClickListener(v -> {
+            deleteConfiguration(configuration);
+            ((AlertDialog) btnNegative.getTag()).dismiss();
+        });
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setView(dialogView)
+                .create();
+        btnNegative.setTag(dialog);
+        btnNegative.setText("No");
+        btnNegative.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     private void copyConfiguration(ConfigurationListFragment.Configuration configuration, String newName, String newDescription) {
@@ -138,7 +183,7 @@ public class ConfigurationListFragment extends Fragment {
             public void onSuccess(String message) {
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Configuration copiée avec succès", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Configuration copied successfully", Toast.LENGTH_SHORT).show();
                     fetchConfigurations();
                 });
             }
@@ -147,8 +192,8 @@ public class ConfigurationListFragment extends Fragment {
             public void onError(String error) {
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Erreur lors de la copie : " + error, Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Erreur lors de la copie : " + error);
+                    Toast.makeText(getContext(), "Error copying configuration: " + error, Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Error copying configuration: " + error);
                 });
             }
         });
@@ -161,7 +206,7 @@ public class ConfigurationListFragment extends Fragment {
             public void onSuccess(String message) {
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Configuration supprimée avec succès", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Configuration deleted successfully", Toast.LENGTH_SHORT).show();
                     fetchConfigurations();
                 });
             }
@@ -170,8 +215,8 @@ public class ConfigurationListFragment extends Fragment {
             public void onError(String error) {
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Erreur lors de la suppression : " + error, Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Erreur lors de la suppression : " + error);
+                    Toast.makeText(getContext(), "Error deleting configuration: " + error, Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Error deleting configuration: " + error);
                 });
             }
         });
@@ -179,7 +224,7 @@ public class ConfigurationListFragment extends Fragment {
 
     private void fetchConfigurations() {
         if (getContext() == null) {
-            Log.e(TAG, "Contexte null, impossible de charger les configurations");
+            Log.e(TAG, "Context null, cannot load configurations");
             return;
         }
 
@@ -196,13 +241,13 @@ public class ConfigurationListFragment extends Fragment {
                     if (configurations.isEmpty()) {
                         recyclerView.setVisibility(View.GONE);
                         emptyView.setVisibility(View.VISIBLE);
-                        emptyView.setText("Aucune configuration trouvée");
+                        emptyView.setText("No configurations found");
                     } else {
                         recyclerView.setVisibility(View.VISIBLE);
                         emptyView.setVisibility(View.GONE);
                         adapter.updateConfigurations(configurations);
                     }
-                    Toast.makeText(getContext(), "Configurations chargées", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Configurations loaded", Toast.LENGTH_SHORT).show();
                 }),
                 error -> getActivity().runOnUiThread(() -> {
                     if (getContext() == null) return;
@@ -211,7 +256,7 @@ public class ConfigurationListFragment extends Fragment {
                     recyclerView.setVisibility(View.VISIBLE);
                     emptyView.setVisibility(View.GONE);
                     Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Erreur lors du chargement des configurations : " + error);
+                    Log.e(TAG, "Error loading configurations: " + error);
                 })
         );
     }

@@ -8,7 +8,6 @@ import com.hmdm.launcher.ui.Admin.Configuration;
 import com.hmdm.launcher.ui.Admin.ConfigurationListFragment;
 import com.hmdm.launcher.ui.Admin.DeleteAppFragment;
 import com.hmdm.launcher.ui.Admin.DeviceListFragment;
-import com.hmdm.launcher.ui.Admin.FileListFragment;
 import com.hmdm.launcher.ui.Admin.GroupFragment;
 import com.hmdm.launcher.ui.Admin.SendMessageFragment;
 
@@ -154,8 +153,10 @@ public interface ServerApi {
     void getApplicationById(int applicationId, GetApplicationIdCallback callback);
 
 
-
-
+    interface ApplicationCallback {
+        void onSuccess(List<ApplicationListFragment.Application> applications);
+    }
+    void searchApplicationsByName(String url, ApplicationCallback successCallback, ErrorCallback errorCallback);
    // void getApplicationConfigurations(int applicationId, GetConfigurationsCallback callback);
 
     interface FileUploadSuccessCallback {
@@ -254,16 +255,6 @@ public interface ServerApi {
     /**
      * Interface for file list callbacks.
      */
-    interface FileListCallback {
-        void onFileList(List<FileListFragment.FileItem> files);
-    }
-
-    /**
-     * Retrieves the list of files from the server.
-     * @param successCallback Callback called with the list of files on success.
-     * @param errorCallback Callback called with an error message on failure.
-     */
-    void getFiles(FileListCallback successCallback, ErrorCallback errorCallback);
 
 
 

@@ -1,4 +1,5 @@
 package com.hmdm.launcher.ui.Admin;
+
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -62,12 +63,13 @@ public class DeviceStatsFragment extends Fragment {
         pieChart.setUsePercentValues(true);
         pieChart.getDescription().setEnabled(false);
         pieChart.setDrawHoleEnabled(true);
-        pieChart.setHoleColor(android.R.color.transparent);
+        pieChart.setHoleColor(Color.parseColor("#0F172A")); // Dark blue
         pieChart.setTransparentCircleRadius(50f);
         pieChart.setHoleRadius(40f);
         pieChart.setEntryLabelTextSize(12f);
-        pieChart.setEntryLabelColor(android.R.color.black);
-        pieChart.getLegend().setEnabled(true);
+        pieChart.setEntryLabelColor(Color.parseColor("#F8FAFC")); // Off-white
+        pieChart.getLegend().setTextColor(Color.parseColor("#94A3B8")); // Light grey
+        pieChart.getLegend().setTextSize(12f);
     }
 
     private void refreshStats() {
@@ -90,8 +92,8 @@ public class DeviceStatsFragment extends Fragment {
                 (totalDevices, enrolledDevices, lastMonthEnrolled) ->
                         requireActivity().runOnUiThread(() -> {
                             tvTotalDevices.setText("Total: " + totalDevices);
-                            tvEnrolledDevices.setText("Inscrits: " + enrolledDevices);
-                            tvLastMonthEnrolled.setText("Inscrits dernier mois: " + lastMonthEnrolled);
+                            tvEnrolledDevices.setText("Enrolled: " + enrolledDevices);
+                            tvLastMonthEnrolled.setText("Enrolled Last Month: " + lastMonthEnrolled);
                             updatePieChart(enrolledDevices, lastMonthEnrolled);
                             loadingAnimation.setVisibility(View.GONE);
                         }),
@@ -104,21 +106,16 @@ public class DeviceStatsFragment extends Fragment {
 
     private void updatePieChart(int enrolled, int lastMonthEnrolled) {
         ArrayList<PieEntry> entries = new ArrayList<>();
-        if (enrolled > 0) entries.add(new PieEntry(enrolled, "Inscrits"));
-        if (lastMonthEnrolled > 0) entries.add(new PieEntry(lastMonthEnrolled, "Inscrits dernier mois"));
+        if (enrolled > 0) entries.add(new PieEntry(enrolled, "Enrolled"));
+        if (lastMonthEnrolled > 0) entries.add(new PieEntry(lastMonthEnrolled, "Enrolled Last Month"));
 
-        PieDataSet dataSet = new PieDataSet(entries, "Statistiques des appareils");
-        try {
-            dataSet.setColors(new int[]{
-                    ContextCompat.getColor(requireContext(), R.color.enrolled_color),
-                    ContextCompat.getColor(requireContext(), R.color.last_month_color)
-            });
-        } catch (Resources.NotFoundException e) {
-            Log.e("DeviceStatsFragment", "Couleur introuvable, utilisation de couleurs par défaut", e);
-            dataSet.setColors(new int[]{Color.GREEN, Color.YELLOW});
-        }
+        PieDataSet dataSet = new PieDataSet(entries, "Device Statistics");
+        dataSet.setColors(new int[]{
+                Color.parseColor("#4ADE80"), // Pastel mint green for enrolled
+                Color.parseColor("#38BDF8")  // Soft sky blue for last month
+        });
         dataSet.setValueTextSize(12f);
-        dataSet.setValueTextColor(android.R.color.white);
+        dataSet.setValueTextColor(Color.parseColor("#F8FAFC")); // Off-white
 
         PieData data = new PieData(dataSet);
         pieChart.setData(data);

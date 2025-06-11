@@ -42,7 +42,21 @@
     <color name="chart_color">#FF4CAF50</color>
     <color name="colorOnline">#00FF00</color>
     <color name="colorOffline">#FF0000</color>
-
+    <color name="primary_blue">#1E3A8A</color>
+    <color name="gradient_orange">#FF9A56</color>
+    <color name="gradient_light_orange">#FFAD7A</color>
+    <color name="gradient_blue">#87CEEB</color>
+    <color name="text_primary">#1E3A8A</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="accent_orange">#FF6B35</color>
+    <color name="icon_red">#FF6B35</color>
+    <color name="icon_yellow">#FFD700</color>
+    <color name="icon_green">#10B981</color>
+    <color name="icon_purple">#8B5CF6</color>
+    <color name="background_dark">#0F172A</color>
+    <color name="background_secondary">#1E293B</color>
+    <color name="blue_1e3a8a">#1E3A8A</color>
+    <color name="gray_94a3b8">#94A3B8</color>
 
 
 

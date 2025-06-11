@@ -1,7 +1,5 @@
 package com.hmdm.launcher.ui.Admin;
 
-
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -144,9 +143,24 @@ public class GroupFragment extends Fragment {
 
     private void showGroupOptions(int position) {
         Group group = groupsList.get(position);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_alert, null);
+        TextView title = dialogView.findViewById(R.id.alert_title);
+        Button btnNegative = dialogView.findViewById(R.id.btn_negative);
+        Button btnPositive = dialogView.findViewById(R.id.btn_positive);
+
+        title.setText("Options pour " + group.getName());
+        btnPositive.setVisibility(View.GONE); // Hide positive button for options selection
+
+        AlertDialog optionsDialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+        btnNegative.setTag(optionsDialog);
+        btnNegative.setOnClickListener(v -> optionsDialog.dismiss());
+
+        // Custom list items
         new AlertDialog.Builder(requireContext())
-                .setTitle("Options pour " + group.getName())
                 .setItems(new String[]{"Modifier", "Supprimer"}, (dialog, which) -> {
+                    optionsDialog.dismiss();
                     if (which == 0) {
                         showEditDialog(group);
                     } else {
@@ -158,22 +172,32 @@ public class GroupFragment extends Fragment {
     }
 
     private void showEditDialog(Group group) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Modifier le groupe");
-        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_group, null);
-        EditText editName = view.findViewById(R.id.edit_name);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_alertgroup, null);
+        TextView title = dialogView.findViewById(R.id.alert_title);
+        EditText editName = dialogView.findViewById(R.id.edit_name);
+        Button btnNegative = dialogView.findViewById(R.id.btn_negative);
+        Button btnPositive = dialogView.findViewById(R.id.btn_positive);
+
+        title.setText("Modifier le groupe");
+        editName.setVisibility(View.VISIBLE);
         editName.setText(group.getName());
-        builder.setView(view)
-                .setPositiveButton("Enregistrer", (dialog, which) -> {
-                    String newName = editName.getText().toString().trim();
-                    if (newName.isEmpty()) {
-                        Toast.makeText(requireContext(), "Le nom du groupe est requis", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    updateGroup(group.getId(), newName, group.getCustomerId(), group.getCommon());
-                })
-                .setNegativeButton("Annuler", null)
-                .show();
+        btnPositive.setText("Enregistrer");
+
+        AlertDialog editDialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+        btnNegative.setTag(editDialog);
+        btnNegative.setOnClickListener(v -> editDialog.dismiss());
+        btnPositive.setOnClickListener(v -> {
+            String newName = editName.getText().toString().trim();
+            if (newName.isEmpty()) {
+                Toast.makeText(requireContext(), "Le nom du groupe est requis", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            updateGroup(group.getId(), newName, group.getCustomerId(), group.getCommon());
+            editDialog.dismiss();
+        });
+        editDialog.show();
     }
 
     private void updateGroup(int id, String name, int customerId, boolean common) {

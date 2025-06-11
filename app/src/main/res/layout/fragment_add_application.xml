@@ -1,161 +1,386 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:orientation="vertical"
+    android:background="@drawable/gradient_background">
 
+    <!-- Simulated Status Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
-        <!-- Title -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Ajouter une nouvelle application"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp"/>
 
-        <!-- Name -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nom de l'application"
-            android:textSize="16sp"/>
-        <EditText
-            android:id="@+id/edit_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Entrez le nom (ex: NewPipe)"
-            android:inputType="text"
-            android:layout_marginBottom="12dp"/>
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
-        <!-- Package -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nom du package"
-            android:textSize="16sp"/>
-        <EditText
-            android:id="@+id/edit_pkg"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Entrez le package (ex: org.schabi.newpipe)"
-            android:inputType="text"
-            android:layout_marginBottom="12dp"/>
 
-        <!-- Version -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Version"
-            android:textSize="16sp"/>
-        <EditText
-            android:id="@+id/edit_version"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Entrez la version (ex: 0.23.1)"
-            android:inputType="text"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Version Code -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Code de version"
-            android:textSize="16sp"/>
-        <EditText
-            android:id="@+id/edit_version_code"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Entrez le code de version (ex: 987)"
-            android:inputType="number"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Show Icon Checkbox -->
-        <CheckBox
-            android:id="@+id/check_show_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Afficher l'icône"
-            android:checked="true"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Upload APK Button -->
-        <Button
-            android:id="@+id/btn_upload_apk"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Téléverser APK"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- URL Display -->
-        <TextView
-            android:id="@+id/text_url"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="URL: (sera affiché après le téléversement)"
-            android:textSize="14sp"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Validate Package Button -->
-        <Button
-            android:id="@+id/btn_validate_pkg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Valider le package"
-            android:enabled="false"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Create App Button -->
-        <Button
-            android:id="@+id/btn_create_app"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Créer l'application"
-            android:enabled="false"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Configuration Spinner -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sélectionner une configuration"
-            android:textSize="16sp"/>
-        <Spinner
-            android:id="@+id/spinner_config"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Select Configuration Button -->
-        <Button
-            android:id="@+id/btn_select_config"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Charger les configurations"
-            android:enabled="false"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Install Button -->
-        <Button
-            android:id="@+id/btn_install"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Installer sur les appareils"
-            android:enabled="false"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Progress Bar -->
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginTop="12dp"/>
 
     </LinearLayout>
-</ScrollView>
+
+    <!-- Main CardView Container -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        android:background="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="#FFFFFF">
+
+            <!-- Blue Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#1E3A8A"
+                android:padding="20dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ADD NEW APPLICATION"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1" />
+
+            </LinearLayout>
+
+            <!-- Scrollable Content -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:padding="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Application Name -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_edit"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Application name icon" />
+
+                        <EditText
+                            android:id="@+id/edit_name"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Enter name (e.g., NewPipe)"
+                            android:textColor="#1E3A8A"
+                            android:textColorHint="#94A3B8"
+                            android:background="@null"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Package Name -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_package"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Package name" />
+
+                        <EditText
+                            android:id="@+id/edit_pkg"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Enter package (e.g., org.schabi.newpipe)"
+                            android:textColor="#1E3A8A"
+                            android:textColorHint="#94A3B8"
+                            android:background="@null"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Version -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_version"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Version icon" />
+
+                        <EditText
+                            android:id="@+id/edit_version"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Enter version (e.g., 0.23.1)"
+                            android:textColor="#1E3A8A"
+                            android:textColorHint="#94A3B8"
+                            android:background="@null"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Version Code -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_code"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Version code icon" />
+
+                        <EditText
+                            android:id="@+id/edit_version_code"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Enter version code (e.g., 987)"
+                            android:inputType="number"
+                            android:textColor="#1E3A8A"
+                            android:textColorHint="#94A3B8"
+                            android:background="@null"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Show Icon Checkbox -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_visibility"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Show icon" />
+
+                        <CheckBox
+                            android:id="@+id/check_show_icon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Show Icon"
+                            android:textColor="#1E3A8A"
+                            android:checked="true"
+                            android:buttonTint="#1E3A8A"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Configuration Spinner -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/input_field_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="24dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_settings"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Configuration icon" />
+
+                        <Spinner
+                            android:id="@+id/spinner_config"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:textColor="#1E3A8A" />
+
+                    </LinearLayout>
+
+                    <!-- Action Buttons -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <!-- Upload APK Button -->
+                        <Button
+                            android:id="@+id/btn_upload_apk"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="UPLOAD APK"
+                            android:textColor="#FFFFFF"
+                            android:backgroundTint="#10B981"
+                            android:textAllCaps="true"
+                            android:textStyle="bold"
+                            android:padding="16dp"
+                            android:layout_marginBottom="12dp"
+                            android:elevation="2dp" />
+
+                        <!-- Validate Package Button -->
+                        <Button
+                            android:id="@+id/btn_validate_pkg"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="VALIDATE PACKAGE"
+                            android:textColor="#FFFFFF"
+                            android:backgroundTint="#1E3A8A"
+                            android:textAllCaps="true"
+                            android:textStyle="bold"
+                            android:padding="16dp"
+                            android:enabled="false"
+                            android:layout_marginBottom="12dp"
+                            android:elevation="2dp" />
+
+                        <!-- Create App Button -->
+                        <Button
+                            android:id="@+id/btn_create_app"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="CREATE APPLICATION"
+                            android:textColor="#FFFFFF"
+                            android:backgroundTint="#10B981"
+                            android:textAllCaps="true"
+                            android:textStyle="bold"
+                            android:padding="16dp"
+                            android:enabled="false"
+                            android:layout_marginBottom="12dp"
+                            android:elevation="2dp" />
+
+                        <!-- Load Configurations Button -->
+                        <Button
+                            android:id="@+id/btn_select_config"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="LOAD CONFIGURATIONS"
+                            android:textColor="#FFFFFF"
+                            android:backgroundTint="#1E3A8A"
+                            android:textAllCaps="true"
+                            android:textStyle="bold"
+                            android:padding="16dp"
+                            android:enabled="false"
+                            android:layout_marginBottom="12dp"
+                            android:elevation="2dp" />
+
+                        <!-- Install Button -->
+                        <Button
+                            android:id="@+id/btn_install"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="INSTALL ON DEVICES"
+                            android:textColor="#FFFFFF"
+                            android:backgroundTint="#10B981"
+                            android:textAllCaps="true"
+                            android:textStyle="bold"
+                            android:padding="16dp"
+                            android:enabled="false"
+                            android:layout_marginBottom="12dp"
+                            android:elevation="2dp" />
+
+                        <!-- URL Display -->
+                        <TextView
+                            android:id="@+id/text_url"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="URL: (will be displayed after upload)"
+                            android:textSize="14sp"
+                            android:textColor="#94A3B8"
+                            android:gravity="center"
+                            android:layout_marginBottom="12dp"
+                            android:padding="8dp" />
+
+                        <!-- Progress Bar -->
+                        <ProgressBar
+                            android:id="@+id/progress_bar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone"
+                            android:layout_marginTop="12dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </ScrollView>
+
+            <!-- Bottom Indicator -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⌄"
+                    android:textColor="#94A3B8"
+                    android:textSize="20sp" />
+
+                <View
+                    android:layout_width="40dp"
+                    android:layout_height="4dp"
+                    android:layout_marginTop="8dp"
+                    android:background="#FF6B35"
+                    android:layout_gravity="center" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -61,7 +62,7 @@ public class SendMessageFragment extends Fragment {
         public long getTimestamp() { return timestamp; }
         public String getMessageText() { return messageText; }
         public int getStatus() { return status; }
-        public String getStatusText() { return status == 0 ? "Envoyé" : "Lu"; }
+        public String getStatusText() { return status == 0 ? "Sent" : "Read"; }
     }
 
     @Override
@@ -113,19 +114,19 @@ public class SendMessageFragment extends Fragment {
 
     private void updateAutoCompleteSuggestions() {
         String recipientType = spinnerRecipientType.getSelectedItem().toString();
-        if ("Appareil".equals(recipientType)) {
-            editRecipientId.setHint("Écrivez le numéro de l'appareil");
+        if ("Device".equals(recipientType)) {
+            editRecipientId.setHint("Enter device number");
             editRecipientId.setEnabled(true);
             editRecipientId.setText("");
-        } else if ("Groupe".equals(recipientType)) {
-            editRecipientId.setHint("Entrez l'ID de groupe");
+        } else if ("Group".equals(recipientType)) {
+            editRecipientId.setHint("Enter group ID");
             editRecipientId.setEnabled(true);
             editRecipientId.setText("");
         } else if ("Configuration".equals(recipientType)) {
-            editRecipientId.setHint("Entrez l'ID de configuration");
+            editRecipientId.setHint("Enter configuration ID");
             editRecipientId.setEnabled(true);
             editRecipientId.setText("");
-        } else if ("Tous les appareils".equals(recipientType)) {
+        } else if ("All Devices".equals(recipientType)) {
             editRecipientId.setHint("");
             editRecipientId.setEnabled(false);
             editRecipientId.setText("");
@@ -139,7 +140,7 @@ public class SendMessageFragment extends Fragment {
         String message = editMessage.getText().toString().trim();
 
         if (message.isEmpty()) {
-            Toast.makeText(requireContext(), "Le message ne peut pas être vide", Toast.LENGTH_SHORT).show();
+            showAlert("Error", "The message cannot be empty");
             return;
         }
 
@@ -154,37 +155,37 @@ public class SendMessageFragment extends Fragment {
         int configurationId = 0;
 
         switch (recipientType) {
-            case "Appareil":
+            case "Device":
                 if (recipientId.isEmpty()) {
                     if (progressBar != null) {
                         progressBar.setVisibility(View.GONE);
                     }
                     btnSend.setEnabled(true);
-                    Toast.makeText(requireContext(), "Entrez un numéro d'appareil", Toast.LENGTH_SHORT).show();
+                    showAlert("Error", "Enter a device number");
                     return;
                 }
                 scope = "device";
                 deviceNumber = recipientId;
                 break;
-            case "Groupe":
+            case "Group":
                 if (recipientId.isEmpty()) {
                     if (progressBar != null) {
                         progressBar.setVisibility(View.GONE);
                     }
                     btnSend.setEnabled(true);
-                    Toast.makeText(requireContext(), "Entrez un ID de groupe", Toast.LENGTH_SHORT).show();
+                    showAlert("Error", "Enter a group ID");
                     return;
                 }
                 try {
                     groupId = Integer.parseInt(recipientId);
                     scope = "group";
-                    deviceNumber = ""; // Pas nécessaire pour un groupe
+                    deviceNumber = ""; // Not needed for group
                 } catch (NumberFormatException e) {
                     if (progressBar != null) {
                         progressBar.setVisibility(View.GONE);
                     }
                     btnSend.setEnabled(true);
-                    Toast.makeText(requireContext(), "ID de groupe invalide", Toast.LENGTH_SHORT).show();
+                    showAlert("Error", "Invalid group ID");
                     return;
                 }
                 break;
@@ -194,23 +195,23 @@ public class SendMessageFragment extends Fragment {
                         progressBar.setVisibility(View.GONE);
                     }
                     btnSend.setEnabled(true);
-                    Toast.makeText(requireContext(), "Entrez un ID de configuration", Toast.LENGTH_SHORT).show();
+                    showAlert("Error", "Enter a configuration ID");
                     return;
                 }
                 try {
                     configurationId = Integer.parseInt(recipientId);
                     scope = "configuration";
-                    deviceNumber = ""; // Pas nécessaire pour une configuration
+                    deviceNumber = ""; // Not needed for configuration
                 } catch (NumberFormatException e) {
                     if (progressBar != null) {
                         progressBar.setVisibility(View.GONE);
                     }
                     btnSend.setEnabled(true);
-                    Toast.makeText(requireContext(), "ID de configuration invalide", Toast.LENGTH_SHORT).show();
+                    showAlert("Error", "Invalid configuration ID");
                     return;
                 }
                 break;
-            case "Tous les appareils":
+            case "All Devices":
                 scope = "all";
                 deviceNumber = "";
                 break;
@@ -225,7 +226,7 @@ public class SendMessageFragment extends Fragment {
                                 progressBar.setVisibility(View.GONE);
                             }
                             btnSend.setEnabled(true);
-                            Toast.makeText(requireContext(), "Message envoyé avec succès", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), "Message sent successfully", Toast.LENGTH_SHORT).show();
                             editMessage.setText("");
                             loadMessageHistory();
                         });
@@ -238,11 +239,31 @@ public class SendMessageFragment extends Fragment {
                                 progressBar.setVisibility(View.GONE);
                             }
                             btnSend.setEnabled(true);
-                            Toast.makeText(requireContext(), "Erreur : " + error, Toast.LENGTH_LONG).show();
-                            Log.e(TAG, "Erreur envoi message : " + error);
+                            showAlert("Error", "Failed to send message: " + error);
+                            Log.e(TAG, "Error sending message: " + error);
                         });
                     }
                 });
+    }
+
+    private void showAlert(String title, String message) {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_alertmessag, null);
+        TextView alertTitle = dialogView.findViewById(R.id.alert_title);
+        TextView alertMessage = dialogView.findViewById(R.id.alert_message);
+        Button btnNegative = dialogView.findViewById(R.id.btn_negative);
+        Button btnPositive = dialogView.findViewById(R.id.btn_positive);
+
+        alertTitle.setText(title);
+        alertMessage.setText(message);
+        btnPositive.setText("OK");
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+        btnNegative.setTag(dialog);
+        btnNegative.setOnClickListener(v -> dialog.dismiss());
+        btnPositive.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     private void loadMessageHistory() {
@@ -262,8 +283,8 @@ public class SendMessageFragment extends Fragment {
                     if (progressBar != null) {
                         progressBar.setVisibility(View.GONE);
                     }
-                    Toast.makeText(requireContext(), "Erreur chargement historique : " + error, Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Erreur chargement historique : " + error);
+                    showAlert("Error", "Failed to load message history: " + error);
+                    Log.e(TAG, "Error loading message history: " + error);
                 })
         );
     }
